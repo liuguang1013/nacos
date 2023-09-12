@@ -35,6 +35,8 @@ public class Constants {
         
         public static final String JM_SNAPSHOT_PATH = "JM.SNAPSHOT.PATH";
         
+        public static final String NACOS_ENV_FIRST = "nacos.env.first";
+        
     }
     
     public static class Disk {

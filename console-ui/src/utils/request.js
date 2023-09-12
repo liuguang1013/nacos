@@ -39,7 +39,7 @@ const request = () => {
       if (!params) {
         config.params = {};
       }
-      if (!url.includes('auth/users/login')) {
+      if (!url.includes('auth/users/login') && localStorage.token) {
         let token = {};
         try {
           token = JSON.parse(localStorage.token);
@@ -89,7 +89,9 @@ const request = () => {
 
         if (
           [401, 403].includes(status) &&
-          ['unknown user!', 'token invalid!', 'token expired!'].includes(message)
+          ['unknown user!', 'token invalid!', 'token expired!', 'session expired!'].includes(
+            message
+          )
         ) {
           goLogin();
         }

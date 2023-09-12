@@ -19,11 +19,14 @@ package com.alibaba.nacos.client.naming.core;
 import com.alibaba.nacos.api.PropertyKeyConst;
 import com.alibaba.nacos.api.exception.NacosException;
 import com.alibaba.nacos.api.exception.runtime.NacosLoadException;
+import com.alibaba.nacos.client.env.NacosClientProperties;
 import com.alibaba.nacos.client.naming.event.ServerListChangedEvent;
 import com.alibaba.nacos.client.naming.remote.http.NamingHttpClientManager;
 import com.alibaba.nacos.client.naming.utils.CollectionUtils;
 import com.alibaba.nacos.client.naming.utils.InitUtils;
 import com.alibaba.nacos.client.naming.utils.NamingHttpUtil;
+import com.alibaba.nacos.client.utils.ContextPathUtil;
+import com.alibaba.nacos.client.utils.ParamUtil;
 import com.alibaba.nacos.common.executor.NameThreadFactory;
 import com.alibaba.nacos.common.http.HttpRestResult;
 import com.alibaba.nacos.common.http.client.NacosRestTemplate;
@@ -49,7 +52,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.alibaba.nacos.client.utils.LogUtils.NAMING_LOGGER;
-import static com.alibaba.nacos.common.constant.RequestUrlConstants.HTTP_PREFIX;
 
 /**
  * Server list manager.
@@ -68,33 +70,47 @@ public class ServerListManager implements ServerListFactory, Closeable {
     
     private final List<String> serverList = new ArrayList<>();
     
-    private List<String> serversFromEndpoint = new ArrayList<>();
+    private volatile List<String> serversFromEndpoint = new ArrayList<>();
     
     private ScheduledExecutorService refreshServerListExecutor;
     
     private String endpoint;
+
+    private String contentPath = ParamUtil.getDefaultContextPath();
+
+    private String serverListName = ParamUtil.getDefaultNodesPath();
     
     private String nacosDomain;
     
     private long lastServerListRefreshTime = 0L;
     
     public ServerListManager(Properties properties) {
-        this(properties, null);
+        this(NacosClientProperties.PROTOTYPE.derive(properties), null);
     }
     
-    public ServerListManager(Properties properties, String namespace) {
+    public ServerListManager(NacosClientProperties properties, String namespace) {
         this.namespace = namespace;
         initServerAddr(properties);
-        if (!serverList.isEmpty()) {
-            currentIndex.set(new Random().nextInt(serverList.size()));
-        } else {
+        if (getServerList().isEmpty() && StringUtils.isEmpty(endpoint)) {
             throw new NacosLoadException("serverList is empty,please check configuration");
+        } else {
+            currentIndex.set(new Random().nextInt(getServerList().size()));
         }
     }
     
-    private void initServerAddr(Properties properties) {
+    private void initServerAddr(NacosClientProperties properties) {
         this.endpoint = InitUtils.initEndpoint(properties);
         if (StringUtils.isNotEmpty(endpoint)) {
+
+            String contentPathTmp = properties.getProperty(PropertyKeyConst.CONTEXT_PATH);
+            if (!StringUtils.isBlank(contentPathTmp)) {
+                this.contentPath = contentPathTmp;
+            }
+            String serverListNameTmp = properties.getProperty(PropertyKeyConst.CLUSTER_NAME);
+            if (!StringUtils.isBlank(serverListNameTmp)) {
+                this.serverListName = serverListNameTmp;
+            }
+
             this.serversFromEndpoint = getServerListFromEndpoint();
             refreshServerListExecutor = new ScheduledThreadPoolExecutor(1,
                     new NameThreadFactory("com.alibaba.nacos.client.naming.server.list.refresher"));
@@ -114,7 +130,10 @@ public class ServerListManager implements ServerListFactory, Closeable {
     
     private List<String> getServerListFromEndpoint() {
         try {
-            String urlString = HTTP_PREFIX + endpoint + "/nacos/serverlist";
+            StringBuilder addressServerUrlTem = new StringBuilder(
+                    String.format("http://%s%s/%s", this.endpoint,
+                            ContextPathUtil.normalizeContextPath(this.contentPath), this.serverListName));
+            String urlString = addressServerUrlTem.toString();
             Header header = NamingHttpUtil.builderHeader();
             Query query = StringUtils.isNotBlank(namespace)
                     ? Query.newInstance().addParam("namespace", namespace)
@@ -125,7 +144,7 @@ public class ServerListManager implements ServerListFactory, Closeable {
                         "Error while requesting: " + urlString + "'. Server returned: " + restResult.getCode());
             }
             String content = restResult.getData();
-            List<String> list = new ArrayList<String>();
+            List<String> list = new ArrayList<>();
             for (String line : IoUtils.readLines(new StringReader(content))) {
                 if (!line.trim().isEmpty()) {
                     list.add(line.trim());

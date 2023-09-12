@@ -32,6 +32,7 @@ import { connect } from 'react-redux';
 import { getSubscribers, removeSubscribers } from '../../../reducers/subscribers';
 import { getParams } from '../../../globalLib';
 import RegionGroup from '../../../components/RegionGroup';
+import PageTitle from '../../../components/PageTitle';
 
 import './SubscriberList.scss';
 
@@ -110,6 +111,8 @@ class SubscriberList extends React.Component {
   render() {
     const { locale = {}, subscriberData = {} } = this.props;
     const { count = 0, subscribers = [] } = subscriberData;
+    const subscribersArray = Array.isArray(subscribers) ? subscribers : [];
+
     const {
       pubNoData,
       subscriberList,
@@ -135,18 +138,11 @@ class SubscriberList extends React.Component {
           tip="Loading..."
           color="#333"
         >
-          <div style={{ marginTop: -15 }}>
-            <RegionGroup
-              setNowNameSpace={this.setNowNameSpace}
-              namespaceCallBack={this.switchNamespace}
-            />
-          </div>
-          <h3 className="page-title">
-            <span className="title-item">{subscriberList}</span>
-            <span className="title-item">|</span>
-            <span className="title-item">{nowNamespaceName}</span>
-            <span className="title-item">{nowNamespaceId}</span>
-          </h3>
+          <PageTitle title={subscriberList} desc={nowNamespaceId} nameSpace />
+          <RegionGroup
+            setNowNameSpace={this.setNowNameSpace}
+            namespaceCallBack={this.switchNamespace}
+          />
           <Row
             className="demo-row"
             style={{
@@ -192,7 +188,8 @@ class SubscriberList extends React.Component {
           </Row>
           <Row style={{ padding: 0 }}>
             <Col span="24" style={{ padding: 0 }}>
-              <Table dataSource={subscribers} locale={{ empty: pubNoData }}>
+              <Table dataSource={subscribersArray} locale={{ empty: pubNoData }}>
+                <Column title={locale.serviceName} dataIndex="serviceName" />
                 <Column title={locale.address} dataIndex="addrStr" />
                 <Column title={locale.clientVersion} dataIndex="agent" />
                 <Column title={locale.appName} dataIndex="app" />

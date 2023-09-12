@@ -19,14 +19,18 @@ package com.alibaba.nacos.plugin.auth.impl;
 import com.alibaba.nacos.auth.config.AuthConfigs;
 import com.alibaba.nacos.common.utils.StringUtils;
 import com.alibaba.nacos.core.code.ControllerMethodsCache;
-import com.alibaba.nacos.plugin.auth.impl.constant.AuthConstants;
+import com.alibaba.nacos.plugin.auth.impl.authenticate.AuthenticationManagerDelegator;
+import com.alibaba.nacos.plugin.auth.impl.authenticate.DefaultAuthenticationManager;
+import com.alibaba.nacos.plugin.auth.impl.authenticate.IAuthenticationManager;
+import com.alibaba.nacos.plugin.auth.impl.authenticate.LdapAuthenticationManager;
 import com.alibaba.nacos.plugin.auth.impl.constant.AuthSystemTypes;
 import com.alibaba.nacos.plugin.auth.impl.filter.JwtAuthenticationTokenFilter;
+import com.alibaba.nacos.plugin.auth.impl.roles.NacosRoleServiceImpl;
+import com.alibaba.nacos.plugin.auth.impl.token.TokenManagerDelegate;
 import com.alibaba.nacos.plugin.auth.impl.users.NacosUserDetailsServiceImpl;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.io.DecodingException;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.BeanIds;
@@ -42,8 +46,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsUtils;
 
 import javax.annotation.PostConstruct;
-import java.nio.charset.StandardCharsets;
-import java.util.Properties;
 
 /**
  * Spring security config.
@@ -63,38 +65,31 @@ public class NacosAuthConfig extends WebSecurityConfigurerAdapter {
     
     private static final String PROPERTY_IGNORE_URLS = "nacos.security.ignore.urls";
     
-    @Autowired
-    private Environment env;
+    private final Environment env;
     
-    @Autowired
-    private JwtTokenManager tokenProvider;
+    private final TokenManagerDelegate tokenProvider;
     
-    @Autowired
-    private AuthConfigs authConfigs;
+    private final AuthConfigs authConfigs;
     
-    @Autowired
-    private NacosUserDetailsServiceImpl userDetailsService;
+    private final NacosUserDetailsServiceImpl userDetailsService;
     
-    @Autowired
-    private LdapAuthenticationProvider ldapAuthenticationProvider;
+    private final LdapAuthenticationProvider ldapAuthenticationProvider;
     
-    @Autowired
-    private ControllerMethodsCache methodsCache;
+    private final ControllerMethodsCache methodsCache;
     
-    /**
-     * secret key.
-     */
-    private String secretKey;
-    
-    /**
-     * secret key byte array.
-     */
-    private byte[] secretKeyBytes;
-    
-    /**
-     * Token validity time(seconds).
-     */
-    private long tokenValidityInSeconds;
+    public NacosAuthConfig(Environment env, TokenManagerDelegate tokenProvider, AuthConfigs authConfigs,
+            NacosUserDetailsServiceImpl userDetailsService,
+            ObjectProvider<LdapAuthenticationProvider> ldapAuthenticationProvider,
+            ControllerMethodsCache methodsCache) {
+        
+        this.env = env;
+        this.tokenProvider = tokenProvider;
+        this.authConfigs = authConfigs;
+        this.userDetailsService = userDetailsService;
+        this.ldapAuthenticationProvider = ldapAuthenticationProvider.getIfAvailable();
+        this.methodsCache = methodsCache;
+        
+    }
     
     /**
      * Init.
@@ -102,15 +97,6 @@ public class NacosAuthConfig extends WebSecurityConfigurerAdapter {
     @PostConstruct
     public void init() {
         methodsCache.initClassMethod("com.alibaba.nacos.plugin.auth.impl.controller");
-        initProperties();
-    }
-    
-    private void initProperties() {
-        Properties properties = authConfigs.getAuthPluginProperties(AuthConstants.AUTH_PLUGIN_TYPE);
-        String validitySeconds = properties
-                .getProperty(AuthConstants.TOKEN_EXPIRE_SECONDS, AuthConstants.DEFAULT_TOKEN_EXPIRE_SECONDS);
-        tokenValidityInSeconds = Long.parseLong(validitySeconds);
-        secretKey = properties.getProperty(AuthConstants.TOKEN_SECRET_KEY, AuthConstants.DEFAULT_TOKEN_SECRET_KEY);
     }
     
     @Bean(name = BeanIds.AUTHENTICATION_MANAGER)
@@ -170,19 +156,18 @@ public class NacosAuthConfig extends WebSecurityConfigurerAdapter {
         return new BCryptPasswordEncoder();
     }
     
-    public byte[] getSecretKeyBytes() {
-        if (secretKeyBytes == null) {
-            try {
-                secretKeyBytes = Decoders.BASE64.decode(secretKey);
-            } catch (DecodingException e) {
-                secretKeyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
-            }
-            
-        }
-        return secretKeyBytes;
+    @Bean
+    @Primary
+    public IAuthenticationManager authenticationManager(
+            ObjectProvider<LdapAuthenticationManager> ldapAuthenticatoinManagerObjectProvider,
+            ObjectProvider<DefaultAuthenticationManager> defaultAuthenticationManagers, AuthConfigs authConfigs) {
+        return new AuthenticationManagerDelegator(defaultAuthenticationManagers,
+                ldapAuthenticatoinManagerObjectProvider, authConfigs);
     }
     
-    public long getTokenValidityInSeconds() {
-        return tokenValidityInSeconds;
+    @Bean
+    public IAuthenticationManager defaultAuthenticationManager(NacosUserDetailsServiceImpl userDetailsService,
+            TokenManagerDelegate jwtTokenManager, NacosRoleServiceImpl roleService) {
+        return new DefaultAuthenticationManager(userDetailsService, jwtTokenManager, roleService);
     }
 }

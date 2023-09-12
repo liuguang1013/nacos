@@ -106,15 +106,6 @@ public class JRaftServer {
     
     // Existential life cycle
     
-    static {
-        // Set bolt buffer
-        // System.getProperties().setProperty("bolt.channel_write_buf_low_water_mark", String.valueOf(64 * 1024 * 1024));
-        // System.getProperties().setProperty("bolt.channel_write_buf_high_water_mark", String.valueOf(256 * 1024 * 1024));
-        
-        System.getProperties().setProperty("bolt.netty.buffer.low.watermark", String.valueOf(128 * 1024 * 1024));
-        System.getProperties().setProperty("bolt.netty.buffer.high.watermark", String.valueOf(256 * 1024 * 1024));
-    }
-    
     private RpcServer rpcServer;
     
     private CliClientServiceImpl cliClientService;
@@ -357,7 +348,7 @@ public class JRaftServer {
      * @return join success
      */
     void registerSelfToCluster(String groupId, PeerId selfIp, Configuration conf) {
-        for (; ; ) {
+        while (!isShutdown) {
             try {
                 List<PeerId> peerIds = cliService.getPeers(groupId, conf);
                 if (peerIds.contains(selfIp)) {

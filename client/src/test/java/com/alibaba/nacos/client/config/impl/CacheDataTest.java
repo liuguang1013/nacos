@@ -17,6 +17,7 @@
 package com.alibaba.nacos.client.config.impl;
 
 import com.alibaba.nacos.api.config.listener.Listener;
+import com.alibaba.nacos.api.exception.NacosException;
 import com.alibaba.nacos.client.config.filter.impl.ConfigFilterChainManager;
 import com.alibaba.nacos.common.utils.MD5Utils;
 import org.junit.Assert;
@@ -52,7 +53,7 @@ public class CacheDataTest {
         Assert.assertTrue(cacheData1.isInitializing());
         Assert.assertNull(cacheData1.getContent());
         Assert.assertEquals(0, cacheData1.getTaskId());
-        Assert.assertFalse(cacheData1.isSyncWithServer());
+        Assert.assertFalse(cacheData1.isConsistentWithServer());
         Assert.assertFalse(cacheData1.isUseLocalConfigInfo());
         Assert.assertEquals(0, cacheData1.getLastModifiedTs().intValue());
         Assert.assertEquals(0, cacheData1.getLocalConfigInfoVersion());
@@ -60,7 +61,7 @@ public class CacheDataTest {
         cacheData1.setInitializing(false);
         cacheData1.setContent("123");
         cacheData1.setTaskId(123);
-        cacheData1.setSyncWithServer(true);
+        cacheData1.setConsistentWithServer(true);
         cacheData1.setType("123");
         long timeStamp = new Date().getTime();
         cacheData1.setLastModifiedTs(timeStamp);
@@ -72,7 +73,7 @@ public class CacheDataTest {
         Assert.assertEquals(MD5Utils.md5Hex("123", "UTF-8"), cacheData1.getMd5());
         
         Assert.assertEquals(123, cacheData1.getTaskId());
-        Assert.assertTrue(cacheData1.isSyncWithServer());
+        Assert.assertTrue(cacheData1.isConsistentWithServer());
         Assert.assertEquals("123", cacheData1.getType());
         Assert.assertTrue(cacheData1.isUseLocalConfigInfo());
         Assert.assertEquals(timeStamp, cacheData1.getLastModifiedTs().longValue());
@@ -80,7 +81,7 @@ public class CacheDataTest {
     }
     
     @Test
-    public void testListener() {
+    public void testListener() throws NacosException {
         ConfigFilterChainManager filter = new ConfigFilterChainManager(new Properties());
         final CacheData cacheData1 = new CacheData(filter, "name1", "key", "group", "tenant");
         
@@ -104,7 +105,7 @@ public class CacheDataTest {
     }
     
     @Test
-    public void testCheckListenerMd5() {
+    public void testCheckListenerMd5() throws NacosException {
         ConfigFilterChainManager filter = new ConfigFilterChainManager(new Properties());
         final CacheData data = new CacheData(filter, "name1", "key", "group", "tenant");
         final List<String> list = new ArrayList<>();

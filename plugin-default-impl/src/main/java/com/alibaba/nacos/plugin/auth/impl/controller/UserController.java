@@ -22,16 +22,17 @@ import com.alibaba.nacos.auth.config.AuthConfigs;
 import com.alibaba.nacos.common.model.RestResult;
 import com.alibaba.nacos.common.model.RestResultUtils;
 import com.alibaba.nacos.common.utils.JacksonUtils;
+import com.alibaba.nacos.persistence.model.Page;
+import com.alibaba.nacos.plugin.auth.api.IdentityContext;
 import com.alibaba.nacos.plugin.auth.constant.ActionTypes;
 import com.alibaba.nacos.plugin.auth.exception.AccessException;
-import com.alibaba.nacos.plugin.auth.impl.JwtTokenManager;
-import com.alibaba.nacos.plugin.auth.impl.NacosAuthConfig;
-import com.alibaba.nacos.plugin.auth.impl.NacosAuthManager;
+import com.alibaba.nacos.plugin.auth.impl.authenticate.IAuthenticationManager;
 import com.alibaba.nacos.plugin.auth.impl.constant.AuthConstants;
 import com.alibaba.nacos.plugin.auth.impl.constant.AuthSystemTypes;
 import com.alibaba.nacos.plugin.auth.impl.persistence.RoleInfo;
 import com.alibaba.nacos.plugin.auth.impl.persistence.User;
 import com.alibaba.nacos.plugin.auth.impl.roles.NacosRoleServiceImpl;
+import com.alibaba.nacos.plugin.auth.impl.token.TokenManagerDelegate;
 import com.alibaba.nacos.plugin.auth.impl.users.NacosUser;
 import com.alibaba.nacos.plugin.auth.impl.users.NacosUserDetailsServiceImpl;
 import com.alibaba.nacos.plugin.auth.impl.utils.PasswordEncoderUtil;
@@ -44,6 +45,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.HttpSessionRequiredException;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -56,7 +58,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * User related methods entry.
@@ -69,9 +70,10 @@ import java.util.Objects;
 public class UserController {
     
     @Autowired
-    private JwtTokenManager jwtTokenManager;
+    private TokenManagerDelegate jwtTokenManager;
     
     @Autowired
+    @Deprecated
     private AuthenticationManager authenticationManager;
     
     @Autowired
@@ -84,10 +86,7 @@ public class UserController {
     private AuthConfigs authConfigs;
     
     @Autowired
-    private NacosAuthConfig nacosAuthConfig;
-    
-    @Autowired
-    private NacosAuthManager authManager;
+    private IAuthenticationManager iAuthenticationManager;
     
     /**
      * Create a new user.
@@ -148,7 +147,15 @@ public class UserController {
     public Object updateUser(@RequestParam String username, @RequestParam String newPassword,
             HttpServletResponse response, HttpServletRequest request) throws IOException {
         // admin or same user
-        if (!hasPermission(username, request)) {
+        try {
+            if (!hasPermission(username, request)) {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN, "authorization failed!");
+                return null;
+            }
+        } catch (HttpSessionRequiredException e) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "session expired!");
+            return null;
+        } catch (AccessException exception) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "authorization failed!");
             return null;
         }
@@ -163,15 +170,18 @@ public class UserController {
         return RestResultUtils.success("update user ok!");
     }
     
-    private boolean hasPermission(String username, HttpServletRequest request) {
+    private boolean hasPermission(String username, HttpServletRequest request) throws HttpSessionRequiredException, AccessException {
         if (!authConfigs.isAuthEnabled()) {
             return true;
         }
-        if (Objects.isNull(request.getSession().getAttribute(AuthConstants.NACOS_USER_KEY))) {
-            return false;
+        IdentityContext identityContext = (IdentityContext) request.getSession()
+                .getAttribute(com.alibaba.nacos.plugin.auth.constant.Constants.Identity.IDENTITY_CONTEXT);
+        NacosUser user;
+        if (identityContext == null
+                || (user = (NacosUser) identityContext.getParameter(AuthConstants.NACOS_USER_KEY)) == null
+                || (user = iAuthenticationManager.authenticate(request)) == null) {
+            throw new HttpSessionRequiredException("session expired!");
         }
-        
-        NacosUser user = (NacosUser) request.getSession().getAttribute(AuthConstants.NACOS_USER_KEY);
         // admin
         if (user.isGlobalAdmin()) {
             return true;
@@ -188,10 +198,18 @@ public class UserController {
      * @return A collection of users, empty set if no user is found
      * @since 1.2.0
      */
-    @GetMapping
+    @GetMapping(params = "search=accurate")
     @Secured(resource = AuthConstants.CONSOLE_RESOURCE_NAME_PREFIX + "users", action = ActionTypes.READ)
-    public Object getUsers(@RequestParam int pageNo, @RequestParam int pageSize) {
-        return userDetailsService.getUsersFromDatabase(pageNo, pageSize);
+    public Page<User> getUsers(@RequestParam int pageNo, @RequestParam int pageSize,
+            @RequestParam(name = "username", required = false, defaultValue = "") String username) {
+        return userDetailsService.getUsersFromDatabase(pageNo, pageSize, username);
+    }
+    
+    @GetMapping(params = "search=blur")
+    @Secured(resource = AuthConstants.CONSOLE_RESOURCE_NAME_PREFIX + "users", action = ActionTypes.READ)
+    public Page<User> fuzzySearchUser(@RequestParam int pageNo, @RequestParam int pageSize,
+            @RequestParam(name = "username", required = false, defaultValue = "") String username) {
+        return userDetailsService.findUsersLike4Page(username, pageNo, pageSize);
     }
     
     /**
@@ -210,16 +228,16 @@ public class UserController {
     public Object login(@RequestParam String username, @RequestParam String password, HttpServletResponse response,
             HttpServletRequest request) throws AccessException {
         
-        if (AuthSystemTypes.NACOS.name().equalsIgnoreCase(authConfigs.getNacosAuthSystemType()) || AuthSystemTypes.LDAP
-                .name().equalsIgnoreCase(authConfigs.getNacosAuthSystemType())) {
-            NacosUser user = (NacosUser) authManager.login(request);
+        if (AuthSystemTypes.NACOS.name().equalsIgnoreCase(authConfigs.getNacosAuthSystemType())
+                || AuthSystemTypes.LDAP.name().equalsIgnoreCase(authConfigs.getNacosAuthSystemType())) {
+            NacosUser user = iAuthenticationManager.authenticate(request);
             
             response.addHeader(AuthConstants.AUTHORIZATION_HEADER, AuthConstants.TOKEN_PREFIX + user.getToken());
             
             ObjectNode result = JacksonUtils.createEmptyJsonNode();
             result.put(Constants.ACCESS_TOKEN, user.getToken());
-            result.put(Constants.TOKEN_TTL, nacosAuthConfig.getTokenValidityInSeconds());
-            result.put(Constants.GLOBAL_ADMIN, user.isGlobalAdmin());
+            result.put(Constants.TOKEN_TTL, jwtTokenManager.getTokenTtlInSeconds(user.getToken()));
+            result.put(Constants.GLOBAL_ADMIN, iAuthenticationManager.hasGlobalAdminRole(user));
             result.put(Constants.USERNAME, user.getUserName());
             return result;
         }

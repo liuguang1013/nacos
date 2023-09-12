@@ -56,6 +56,7 @@ class Header extends React.Component {
   changePassword = () => {
     this.setState({
       passwordResetUser: this.getUsername(),
+      passwordResetUserVisible: true,
     });
   };
 
@@ -74,9 +75,11 @@ class Header extends React.Component {
     }
     return '';
   };
+
   indexAction = () => {
     this.props.history.push('/');
   };
+
   render() {
     const {
       locale = {},
@@ -84,11 +87,11 @@ class Header extends React.Component {
       location: { pathname },
     } = this.props;
     const { home, docs, blog, community, enterprise, languageSwitchButton } = locale;
-    const { passwordResetUser = '' } = this.state;
+    const { passwordResetUser = '', passwordResetUserVisible = false } = this.state;
     const BASE_URL = `https://nacos.io/${language.toLocaleLowerCase()}/`;
     const NAV_MENU = [
       { id: 1, title: home, link: BASE_URL },
-      { id: 2, title: docs, link: `${BASE_URL}docs/what-is-nacos.html` },
+      { id: 2, title: docs, link: `${BASE_URL}docs/v2/what-is-nacos.html` },
       { id: 3, title: blog, link: `${BASE_URL}blog/index.html` },
       { id: 4, title: community, link: `${BASE_URL}community/index.html` },
       {
@@ -135,13 +138,16 @@ class Header extends React.Component {
           </div>
         </header>
         <PasswordReset
+          visible={passwordResetUserVisible}
           username={passwordResetUser}
           onOk={user =>
             passwordReset(user).then(res => {
               return res;
             })
           }
-          onCancel={() => this.setState({ passwordResetUser: undefined })}
+          onCancel={() =>
+            this.setState({ passwordResetUser: undefined, passwordResetUserVisible: false })
+          }
         />
       </>
     );

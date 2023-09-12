@@ -29,7 +29,7 @@ public class IdentityContext {
     /**
      * get context from request.
      */
-    private final Map<String, Object> param = new HashMap<String, Object>();
+    private final Map<String, Object> param = new HashMap<>();
     
     /**
      * get key from context.
@@ -50,10 +50,14 @@ public class IdentityContext {
      * @return identity value
      */
     public <T> T getParameter(String key, T defaultValue) {
+        if (null == defaultValue) {
+            throw new IllegalArgumentException(
+                    "defaultValue can't be null. Please use #getParameter(String key) replace");
+        }
         try {
-            T result = (T) param.get(key);
+            Object result = param.get(key);
             if (null != result) {
-                return result;
+                return (T) defaultValue.getClass().cast(result);
             }
             return defaultValue;
         } catch (ClassCastException exception) {

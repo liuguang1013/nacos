@@ -24,13 +24,15 @@ import java.io.UnsupportedEncodingException;
 
 public class ResponseUtilTest {
     
+    String lineSeparator = System.lineSeparator();
+    
     @Test
     public void testWriteErrMsg() {
         MockHttpServletResponse response = new MockHttpServletResponse();
         ResponseUtil.writeErrMsg(response, 404, "test");
         Assert.assertEquals(404, response.getStatus());
         try {
-            Assert.assertEquals("test\r\n", response.getContentAsString());
+            Assert.assertEquals("test" + lineSeparator, response.getContentAsString());
         } catch (UnsupportedEncodingException e) {
             System.out.println(e.toString());
         }

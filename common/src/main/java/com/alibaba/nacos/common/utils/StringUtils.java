@@ -16,12 +16,10 @@
 
 package com.alibaba.nacos.common.utils;
 
-import com.alibaba.nacos.api.common.Constants;
-
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,6 +36,9 @@ import java.util.StringTokenizer;
  * @author zzq
  */
 public class StringUtils {
+
+    private StringUtils() {
+    }
     
     public static final String DOT = ".";
     
@@ -64,7 +65,7 @@ public class StringUtils {
      * @return created string
      */
     public static String newStringForUtf8(byte[] bytes) {
-        return new String(bytes, Charset.forName(Constants.ENCODE));
+        return new String(bytes, StandardCharsets.UTF_8);
     }
     
     /**
@@ -194,9 +195,7 @@ public class StringUtils {
             if (objects[i] != null) {
                 stringBuilder.append(objects[i]);
                 if (i != collection.size() - 1 && separator != null) {
-                    if (separator != null) {
-                        stringBuilder.append(separator);
-                    }
+                    stringBuilder.append(separator);
                 }
             }
         }
@@ -401,7 +400,7 @@ public class StringUtils {
         }
         if (ignoreCase) {
             String lowerCaseStr = str.toString().toLowerCase();
-            String lowerCasePrefix = str.toString().toLowerCase();
+            String lowerCasePrefix = prefix.toString().toLowerCase();
             return lowerCaseStr.startsWith(lowerCasePrefix);
         } else {
             return str.toString().startsWith(prefix.toString());

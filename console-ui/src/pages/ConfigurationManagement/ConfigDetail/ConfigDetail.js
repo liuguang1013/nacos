@@ -205,7 +205,7 @@ class ConfigDetail extends React.Component {
       roundedSelection: false,
       readOnly: true,
       lineNumbersMinChars: true,
-      theme: 'vs-dark',
+      theme: 'vs-dark-enhanced',
       wordWrapColumn: 120,
       folding: false,
       showFoldingControls: 'always',
@@ -292,7 +292,7 @@ class ConfigDetail extends React.Component {
     };
     const activeKey = this.state.activeKey.split('-')[0];
     return (
-      <div style={{ padding: 10 }}>
+      <div>
         <Loading
           shape={'flower'}
           tip={'Loading...'}
@@ -318,10 +318,13 @@ class ConfigDetail extends React.Component {
             ''
           )}
           <Form inline={false} field={this.field} {...formItemLayout}>
-            <FormItem label={'Data ID:'} required>
+            <FormItem label={locale.namespace} required>
+              <p>{this.tenant}</p>
+            </FormItem>
+            <FormItem label={'Data ID'} required>
               <Input htmlType={'text'} readOnly {...init('dataId')} />
             </FormItem>
-            <FormItem label={'Group:'} required>
+            <FormItem label={'Group'} required>
               <Input htmlType={'text'} readOnly {...init('group')} />
             </FormItem>
             <FormItem label=" ">
