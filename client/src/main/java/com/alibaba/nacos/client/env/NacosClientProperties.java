@@ -22,6 +22,19 @@ import java.util.Properties;
  * NacosClientProperties interface.
  * include all the properties from jvm args, system environment, default setting.
  * more details you can see https://github.com/alibaba/nacos/issues/8622
+ *
+ *  Nacos 客户端属性
+ * 可以参考：https://www.yuque.com/nacos/mydt7c/egg1fb?
+ * 现在总共有3种获取参数的方式在客户端模块中,
+ * 有从 properties中获取的、从Jvm参数获取的和从System环境变了中获取的. 所以需要一种统一获取参数的方式.
+ * ● DefaultSettingPropertySource默认设置, 加载 classpath:nacos_default_setting.properties文件,获取一些默认设置
+ * ● JvmArgsPropertySourcejvm 参数, 通过 -D的方式进行传递
+ * ● SystemEnvPropertySource系统环境变量
+ * ● PropertiesPropertySource用户自定义参数
+ *
+ * ● jvm 指通过 System.getProperties 获取的值
+ * ● sys 指通过 System.env 获取的值
+ * ● default 指通过读取 nacos_default_setting.properties 获取的值
  * @author onewe
  */
 public interface NacosClientProperties {

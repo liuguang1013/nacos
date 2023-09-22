@@ -31,6 +31,7 @@ public class ServerConfigAbility implements Serializable {
 
     /**
      * support remote metrics get.
+     * 支持 metrics 获取
      */
     private boolean supportRemoteMetrics;
     

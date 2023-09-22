@@ -22,7 +22,7 @@ import java.util.List;
 
 /**
  * Subscribers to multiple events can be listened to.
- *
+ * 实现了订阅多个事件
  * @author <a href="mailto:liaochuntao@live.com">liaochuntao</a>
  * @author zongtanghu
  */
@@ -31,6 +31,7 @@ public abstract class SmartSubscriber extends Subscriber {
     
     /**
      * Returns which event type are smart subscriber interested in.
+     * 实现了订阅多个事件
      *
      * @return The interested event types.
      */

@@ -22,7 +22,7 @@ import com.alibaba.nacos.common.utils.StringUtils;
 
 /**
  * Tenant Util.
- *
+ * 租户工具类
  * @author Nacos
  */
 public class TenantUtil {
@@ -30,7 +30,10 @@ public class TenantUtil {
     private static final String USER_TENANT;
     
     private static final String DEFAULT_ACM_NAMESPACE = "";
-    
+
+    /**
+     * 租户工具类
+     */
     private static final String TENANT_ID = "tenant.id";
     
     private static final String ACM_NAMESPACE_PROPERTY = "acm.namespace";
@@ -60,7 +63,7 @@ public class TenantUtil {
     
     /**
      * Adapt the way ANS gets tenant on the cloud.
-     *
+     * 调整ANS在云上获得租户的方式。
      * @return user tenant for ans
      */
     public static String getUserTenantForAns() {

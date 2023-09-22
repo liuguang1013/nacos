@@ -31,6 +31,7 @@ public class ServerNamingAbility implements Serializable {
     
     /**
      * Nacos server can use SOFA-Jraft to handle persist service and metadata.
+     * Nacos服务器可以使用 SOFA-Jraft 来处理持久化服务和元数据。
      */
     private boolean supportJraft;
     

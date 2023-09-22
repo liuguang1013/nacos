@@ -18,11 +18,15 @@ package com.alibaba.nacos.client.env;
 
 import java.util.Properties;
 
+/**
+ * 系统属性类，可以通过 启动参数中 -D 指定
+ */
 class JvmArgsPropertySource extends AbstractPropertySource {
     
     private final Properties properties;
     
     JvmArgsPropertySource() {
+
         this.properties = System.getProperties();
     }
     

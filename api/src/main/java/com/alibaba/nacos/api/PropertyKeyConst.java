@@ -19,6 +19,8 @@ package com.alibaba.nacos.api;
 /**
  * Property Key Const.
  *
+ *  常量类
+ *
  * @author Nacos
  */
 public class PropertyKeyConst {

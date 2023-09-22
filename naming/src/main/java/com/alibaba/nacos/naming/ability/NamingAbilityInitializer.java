@@ -21,7 +21,8 @@ import com.alibaba.nacos.core.ability.ServerAbilityInitializer;
 
 /**
  * Server ability initializer for naming.
- *
+ *  服务端能力初始化器
+ *  iTodo：服务端能力初始化器 什么时候加载？
  * @author xiweng.yy
  */
 public class NamingAbilityInitializer implements ServerAbilityInitializer {

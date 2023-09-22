@@ -90,6 +90,7 @@ import static com.alibaba.nacos.api.common.Constants.ENCODE;
 
 /**
  * Long polling.
+ * 长轮询
  *
  * @author Nacos
  */

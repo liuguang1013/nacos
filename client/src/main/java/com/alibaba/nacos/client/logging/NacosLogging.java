@@ -36,10 +36,12 @@ public class NacosLogging {
     
     private NacosLogging() {
         try {
+            // 尝试加载 Logback 日志框架
             Class.forName("ch.qos.logback.classic.Logger");
             nacosLogging = new LogbackNacosLogging();
             isLogback = true;
         } catch (ClassNotFoundException e) {
+            // 出现异常使用 Log4j2
             nacosLogging = new Log4J2NacosLogging();
         }
     }

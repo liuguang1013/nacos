@@ -33,6 +33,9 @@ import java.util.stream.Collectors;
 /**
  * Searchable NacosClientProperties. the SearchableProperties that it can be specified search order by nacos.env.first
  *
+ * 创建单例对象
+ *      制定 不同环境属性的 获取顺序
+ *
  * @author onewe
  */
 class SearchableProperties implements NacosClientProperties {
@@ -44,15 +47,21 @@ class SearchableProperties implements NacosClientProperties {
     private static final SystemEnvPropertySource SYSTEM_ENV_PROPERTY_SOURCE = new SystemEnvPropertySource();
     
     private static final DefaultSettingPropertySource DEFAULT_SETTING_PROPERTY_SOURCE = new DefaultSettingPropertySource();
-    
+
+    /**
+     * Nacos 中属性的查找顺序
+     */
     private static final List<SourceType> SEARCH_ORDER;
     
     private static final CompositeConverter CONVERTER = new CompositeConverter();
-    
+
+    /**
+     * 初始化 属性的查找顺序
+     */
     static {
         List<SourceType> initOrder = Arrays.asList(SourceType.PROPERTIES, SourceType.JVM, SourceType.ENV,
                 SourceType.DEFAULT_SETTING);
-        
+        // 指定获取参数的时候，首先获取的参数配置
         String firstEnv = JVM_ARGS_PROPERTY_SOURCE.getProperty(Constants.SysEnv.NACOS_ENV_FIRST);
         if (StringUtils.isBlank(firstEnv)) {
             firstEnv = SYSTEM_ENV_PROPERTY_SOURCE.getProperty(Constants.SysEnv.NACOS_ENV_FIRST);
@@ -62,6 +71,7 @@ class SearchableProperties implements NacosClientProperties {
             try {
                 final SourceType sourceType = SourceType.valueOf(firstEnv.toUpperCase());
                 if (!sourceType.equals(SourceType.PROPERTIES) && !sourceType.equals(SourceType.DEFAULT_SETTING)) {
+                    // 替换 属性列表中，属性查找顺序
                     final int index = initOrder.indexOf(sourceType);
                     final SourceType replacedSourceType = initOrder.set(0, sourceType);
                     initOrder.set(index, replacedSourceType);
@@ -80,7 +90,7 @@ class SearchableProperties implements NacosClientProperties {
         }
         LOGGER.debug(orderInfo.toString());
     }
-    
+
     static final SearchableProperties INSTANCE = new SearchableProperties();
     
     private final List<AbstractPropertySource> propertySources;
@@ -88,11 +98,15 @@ class SearchableProperties implements NacosClientProperties {
     private final PropertiesPropertySource propertiesPropertySource;
     
     private SearchableProperties() {
+        // 创建个 空对象
         this(new PropertiesPropertySource());
     }
     
     private SearchableProperties(PropertiesPropertySource propertiesPropertySource) {
         this.propertiesPropertySource = propertiesPropertySource;
+        /**
+         * 对 保存实际属性类的列表，按照 SEARCH_ORDER 的顺序排序
+         */
         this.propertySources = build(propertiesPropertySource, JVM_ARGS_PROPERTY_SOURCE, SYSTEM_ENV_PROPERTY_SOURCE,
                 DEFAULT_SETTING_PROPERTY_SOURCE);
     }

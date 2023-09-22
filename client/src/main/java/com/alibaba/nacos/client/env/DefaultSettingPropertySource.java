@@ -23,6 +23,9 @@ import org.slf4j.LoggerFactory;
 import java.io.InputStream;
 import java.util.Properties;
 
+/**
+ * 加载 resource 目录下 的默认配置文件
+ */
 class DefaultSettingPropertySource extends AbstractPropertySource {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultSettingPropertySource.class);

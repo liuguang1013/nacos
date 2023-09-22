@@ -23,7 +23,7 @@ import java.util.List;
 
 /**
  * Instances change event.
- *
+ * 实例改变事件
  * @author horizonzy
  * @since 1.4.1
  */

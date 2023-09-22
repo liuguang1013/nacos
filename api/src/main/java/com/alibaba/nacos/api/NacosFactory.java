@@ -28,6 +28,7 @@ import java.util.Properties;
 
 /**
  * Nacos Factory.
+ * 主要功能： 创建 ConfigService、NamingService、NamingMaintainService
  *
  * @author Nacos
  */
@@ -35,6 +36,7 @@ public class NacosFactory {
     
     /**
      * Create config service.
+     * 通过 Properties，创建配置服务
      *
      * @param properties init param
      * @return config
@@ -46,6 +48,7 @@ public class NacosFactory {
     
     /**
      * Create config service.
+     * 通过 serverAddr，创建配置服务
      *
      * @param serverAddr server list
      * @return config
@@ -57,6 +60,7 @@ public class NacosFactory {
     
     /**
      * Create naming service.
+     * 通过 serverAddr，创建配置服务
      *
      * @param serverAddr server list
      * @return Naming
@@ -68,6 +72,7 @@ public class NacosFactory {
     
     /**
      * Create naming service.
+     * 通过 Properties，创建配置服务
      *
      * @param properties init param
      * @return Naming
@@ -79,6 +84,7 @@ public class NacosFactory {
     
     /**
      * Create maintain service.
+     * 通过 serverAddr，创建维护服务
      *
      * @param serverAddr server address
      * @return NamingMaintainService
@@ -90,7 +96,7 @@ public class NacosFactory {
     
     /**
      * Create maintain service.
-     *
+     * 通过 Properties，创建维护服务
      * @param properties server address
      * @return NamingMaintainService
      * @throws NacosException Exception

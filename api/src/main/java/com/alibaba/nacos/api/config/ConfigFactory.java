@@ -25,6 +25,8 @@ import java.util.Properties;
 /**
  * Config Factory.
  *
+ * 只有NacosFactory 调用
+ *
  * @author Nacos
  */
 public class ConfigFactory {

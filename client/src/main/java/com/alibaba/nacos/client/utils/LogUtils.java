@@ -23,7 +23,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Log utils.
- *
+ * 日志工具类
  * @author <a href="mailto:huangxiaoyu1018@gmail.com">hxy1991</a>
  * @since 0.9.0
  */
@@ -32,6 +32,7 @@ public class LogUtils {
     public static final Logger NAMING_LOGGER;
     
     static {
+        // 获取实例，加载配置
         NacosLogging.getInstance().loadConfiguration();
         NAMING_LOGGER = getLogger("com.alibaba.nacos.client.naming");
     }

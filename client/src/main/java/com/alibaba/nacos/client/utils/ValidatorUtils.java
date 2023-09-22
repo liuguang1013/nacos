@@ -38,7 +38,7 @@ public final class ValidatorUtils {
     
     /**
      * Check context path.
-     *
+     * 验证 上下文路径
      * @param contextPath context path
      */
     public static void checkContextPath(String contextPath) {

@@ -18,6 +18,10 @@ package com.alibaba.nacos.client.env;
 
 import java.util.Properties;
 
+/**
+ * 属性抽象类
+ * 存在四个子类
+ */
 abstract class AbstractPropertySource {
     
     /**

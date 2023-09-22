@@ -36,6 +36,7 @@ public class ServerRemoteAbility implements Serializable {
     
     /**
      * if support grpc report.
+     * 默认支持 grpc
      */
     private boolean grpcReportEnabled = true;
     

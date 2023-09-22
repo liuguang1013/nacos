@@ -70,7 +70,12 @@ public class NacosConfigService implements ConfigService {
     private String namespace;
     
     private final ConfigFilterChainManager configFilterChainManager;
-    
+
+    /**
+     * NacosConfigService 唯一初始化方法
+     * 通过工厂类创建
+     * ConfigFactory#createConfigService(Properties properties)
+     */
     public NacosConfigService(Properties properties) throws NacosException {
         final NacosClientProperties clientProperties = NacosClientProperties.PROTOTYPE.derive(properties);
         ValidatorUtils.checkInitParam(clientProperties);

@@ -39,6 +39,8 @@ import static com.alibaba.nacos.api.exception.NacosException.SERVER_ERROR;
 /**
  * Unified Event Notify Center.
  *
+ *  事件统一通知中心
+ *
  * @author <a href="mailto:liaochuntao@live.com">liaochuntao</a>
  * @author zongtanghu
  */
@@ -53,7 +55,10 @@ public class NotifyCenter {
     private static final AtomicBoolean CLOSED = new AtomicBoolean(false);
     
     private static final EventPublisherFactory DEFAULT_PUBLISHER_FACTORY;
-    
+
+    /**
+     * 单例
+     */
     private static final NotifyCenter INSTANCE = new NotifyCenter();
     
     private DefaultSharePublisher sharePublisher;
@@ -62,16 +67,22 @@ public class NotifyCenter {
     
     /**
      * Publisher management container.
+     * 发布者管理容器
+     * key：事件的全路径名。     举例：key: com.alibaba.nacos.client.naming.event.InstancesChangeEvent
+     * value: 创建的 DefaultPublisher
+     *
      */
     private final Map<String, EventPublisher> publisherMap = new ConcurrentHashMap<>(16);
     
     static {
         // Internal ArrayBlockingQueue buffer size. For applications with high write throughput,
         // this value needs to be increased appropriately. default value is 16384
+        // 内部ArrayBlockingQueue缓冲区大小。对于具有高写吞吐量的应用程序，这个值需要适当地增加。默认值是16384
         String ringBufferSizeProperty = "nacos.core.notify.ring-buffer-size";
         ringBufferSize = Integer.getInteger(ringBufferSizeProperty, 16384);
         
         // The size of the public publisher's message staging queue buffer
+        // 公共发布者的消息暂存队列缓冲区的大小
         String shareBufferSizeProperty = "nacos.core.notify.share-buffer-size";
         shareBufferSize = Integer.getInteger(shareBufferSizeProperty, 1024);
         
@@ -83,9 +94,12 @@ public class NotifyCenter {
         } else {
             clazz = DefaultPublisher.class;
         }
-        
+        // 匿名内部类   默认的发布者 工厂类，此处只是定义，并未真正的创建
+        // 注册发布者的时候才会真正的创建
         DEFAULT_PUBLISHER_FACTORY = (cls, buffer) -> {
             try {
+                // iTodo：参数传入的是什么？ 解决：此处只是创建类，并未执行方法，真正添加发布者的时候会调用该方法
+                LOGGER.info("====== 验证 cls:{},buffer:{}",cls,buffer);
                 EventPublisher publisher = clazz.newInstance();
                 publisher.init(cls, buffer);
                 return publisher;
@@ -104,7 +118,7 @@ public class NotifyCenter {
         } catch (Throwable ex) {
             LOGGER.error("Service class newInstance has error : ", ex);
         }
-        
+        // 添加 关闭的钩子方法
         ThreadUtils.addShutdownHook(NotifyCenter::shutdown);
     }
     
@@ -173,6 +187,7 @@ public class NotifyCenter {
     public static void registerSubscriber(final Subscriber consumer, final EventPublisherFactory factory) {
         // If you want to listen to multiple events, you do it separately,
         // based on subclass's subscribeTypes method return list, it can register to publisher.
+        // 如果您想要监听多个事件，您可以根据子类的subscribettypes方法返回列表分别执行，它可以注册到publisher
         if (consumer instanceof SmartSubscriber) {
             for (Class<? extends Event> subscribeType : ((SmartSubscriber) consumer).subscribeTypes()) {
                 // For case, producer: defaultSharePublisher -> consumer: smartSubscriber.
@@ -185,7 +200,7 @@ public class NotifyCenter {
             }
             return;
         }
-        
+
         final Class<? extends Event> subscribeType = consumer.subscribeType();
         if (ClassUtils.isAssignableFrom(SlowEvent.class, subscribeType)) {
             INSTANCE.sharePublisher.addSubscriber(consumer, subscribeType);
@@ -340,7 +355,7 @@ public class NotifyCenter {
         if (ClassUtils.isAssignableFrom(SlowEvent.class, eventType)) {
             return INSTANCE.sharePublisher;
         }
-        
+        // 获取全路径名
         final String topic = ClassUtils.getCanonicalName(eventType);
         synchronized (NotifyCenter.class) {
             // MapUtils.computeIfAbsent is a unsafe method.

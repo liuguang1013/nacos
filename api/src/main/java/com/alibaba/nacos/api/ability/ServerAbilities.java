@@ -25,18 +25,31 @@ import java.util.Objects;
 
 /**
  * abilities of nacos server.
- *
+ * 服务端的能力：
  * @author liuzunfei
  * @version $Id: ServerAbilities.java, v 0.1 2021年01月24日 00:09 AM liuzunfei Exp $
  */
 public class ServerAbilities implements Serializable {
     
     private static final long serialVersionUID = -2120543002911304171L;
-    
+    /**
+     * 服务端 远程能力，代码中设定 默认使用 grpc
+     * supportRemoteConnection
+     * grpcReportEnabled
+     */
     private ServerRemoteAbility remoteAbility = new ServerRemoteAbility();
-    
+
+    /**
+     * 服务端 配置能力
+     * supportRemoteMetrics
+     */
     private ServerConfigAbility configAbility = new ServerConfigAbility();
-    
+
+    /**
+     * 服务端 命名能力
+     * supportJraft     NamingAbilityInitializer 中设置为 true
+     *
+     */
     private ServerNamingAbility namingAbility = new ServerNamingAbility();
     
     public ServerRemoteAbility getRemoteAbility() {

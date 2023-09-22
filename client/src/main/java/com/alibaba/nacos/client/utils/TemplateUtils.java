@@ -31,6 +31,8 @@ public class TemplateUtils {
     /**
      * Execute if string not empty.
      *
+     * 字符串不为空，执行异步方法
+     *
      * @param source   source
      * @param runnable execute runnable
      */

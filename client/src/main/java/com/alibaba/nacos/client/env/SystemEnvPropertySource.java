@@ -20,7 +20,9 @@ import java.util.Map;
 import java.util.Properties;
 
 class SystemEnvPropertySource extends AbstractPropertySource {
-    
+    /**
+     * 系统环境变量
+     */
     private final Map<String, String> env = System.getenv();
     
     @Override

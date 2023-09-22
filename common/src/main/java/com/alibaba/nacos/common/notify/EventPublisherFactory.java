@@ -20,11 +20,12 @@ import java.util.function.BiFunction;
 
 /**
  * Event publisher factory.
+ * 事件发布者工厂类
  *
  * @author xiweng.yy
  */
 public interface EventPublisherFactory extends BiFunction<Class<? extends Event>, Integer, EventPublisher> {
-    
+
     /**
      * Build an new {@link EventPublisher}.
      *

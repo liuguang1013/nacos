@@ -36,6 +36,7 @@ public class NacosServiceLoader {
      * Load service.
      *
      * <p>Load service by SPI and cache the classes for reducing cost when load second time.
+     * 通过SPI加载服务，并在第二次加载时缓存类以降低成本。
      *
      * @param service service class
      * @param <T> type of service

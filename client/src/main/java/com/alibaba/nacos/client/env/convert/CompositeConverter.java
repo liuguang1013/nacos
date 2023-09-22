@@ -23,6 +23,7 @@ import java.util.MissingFormatArgumentException;
 /**
  * default converters.
  * @author onewe
+ * 类型转换器
  */
 public class CompositeConverter {
     

@@ -35,6 +35,8 @@ import com.alibaba.nacos.common.utils.StringUtils;
 /**
  * Init utils.
  *
+ * 初始化工具类
+ *
  * @author liaochuntao
  * @author deshao
  */
@@ -51,33 +53,35 @@ public class InitUtils {
      */
     public static String initNamespaceForNaming(NacosClientProperties properties) {
         String tmpNamespace = null;
-        
+
+        // 获取属性：是否使用 云 命名空间解析
         String isUseCloudNamespaceParsing = properties.getProperty(PropertyKeyConst.IS_USE_CLOUD_NAMESPACE_PARSING,
                 properties.getProperty(SystemPropertyKeyConst.IS_USE_CLOUD_NAMESPACE_PARSING,
                         String.valueOf(Constants.DEFAULT_USE_CLOUD_NAMESPACE_PARSING)));
-        
+        // 1、如果使用 云 namespace 解析，先从此处获取
         if (Boolean.parseBoolean(isUseCloudNamespaceParsing)) {
-            
+            // 获取租户id
             tmpNamespace = TenantUtil.getUserTenantForAns();
             LogUtils.NAMING_LOGGER.info("initializer namespace from ans.namespace attribute : {}", tmpNamespace);
-            
+
+            // 此处 如果 tmpNamespace 为空，使用异步回调方式，获取
             tmpNamespace = TemplateUtils.stringEmptyAndThenExecute(tmpNamespace, () -> {
                 String namespace = properties.getProperty(PropertyKeyConst.SystemEnv.ALIBABA_ALIWARE_NAMESPACE);
                 LogUtils.NAMING_LOGGER.info("initializer namespace from ALIBABA_ALIWARE_NAMESPACE attribute :" + namespace);
                 return namespace;
             });
         }
-        
+        // 2、在 jvm 参数获取 namespace
         tmpNamespace = TemplateUtils.stringEmptyAndThenExecute(tmpNamespace, () -> {
             String namespace = properties.getPropertyFrom(SourceType.JVM, PropertyKeyConst.NAMESPACE);
             LogUtils.NAMING_LOGGER.info("initializer namespace from namespace attribute :" + namespace);
             return namespace;
         });
-    
+        // 3、还未获取到，走默认流程去查找
         if (StringUtils.isEmpty(tmpNamespace)) {
             tmpNamespace = properties.getProperty(PropertyKeyConst.NAMESPACE);
         }
-        
+        // 4、使用默认的 命名空间  public
         tmpNamespace = TemplateUtils.stringEmptyAndThenExecute(tmpNamespace, () -> UtilAndComs.DEFAULT_NAMESPACE_ID);
         return tmpNamespace;
     }
@@ -89,7 +93,9 @@ public class InitUtils {
      * @since 1.4.1
      */
     public static void initWebRootContext(NacosClientProperties properties) {
+        // 获取 contextPath
         final String webContext = properties.getProperty(PropertyKeyConst.CONTEXT_PATH);
+        // 初始化 web 容器上下文 路径
         TemplateUtils.stringNotEmptyAndThenExecute(webContext, () -> {
             UtilAndComs.webContext = ContextPathUtil.normalizeContextPath(webContext);
             UtilAndComs.nacosUrlBase = UtilAndComs.webContext + "/v1/ns";

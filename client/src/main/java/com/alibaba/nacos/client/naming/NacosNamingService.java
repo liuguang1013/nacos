@@ -74,30 +74,46 @@ public class NacosNamingService implements NamingService {
     private NamingClientProxy clientProxy;
     
     private String notifierEventScope;
-    
+
+    /**
+     * 创建类方式一
+     * NacosFactory->NamingFactory->反射方式创建类
+     */
     public NacosNamingService(String serverList) throws NacosException {
         Properties properties = new Properties();
         properties.setProperty(PropertyKeyConst.SERVER_ADDR, serverList);
         init(properties);
     }
-    
+
+    /**
+     * 创建类方式二
+     * NacosFactory->NamingFactory->反射方式创建类
+     */
     public NacosNamingService(Properties properties) throws NacosException {
         init(properties);
     }
     
     private void init(Properties properties) throws NacosException {
+        // 创建 Nacos 客户端自定义属性类
         final NacosClientProperties nacosClientProperties = NacosClientProperties.PROTOTYPE.derive(properties);
-        
+        // 参数检查
         ValidatorUtils.checkInitParam(nacosClientProperties);
+        // 为命名服务 初始化 namespace
         this.namespace = InitUtils.initNamespaceForNaming(nacosClientProperties);
+        // 初始化 序列化
         InitUtils.initSerialization();
+        // 初始化 WebRootContext
         InitUtils.initWebRootContext(nacosClientProperties);
+        // 初始化 日志文件名称，默认是：naming.log
         initLogName(nacosClientProperties);
-    
+
         this.notifierEventScope = UUID.randomUUID().toString();
+        // 创建改变通知器
         this.changeNotifier = new InstancesChangeNotifier(this.notifierEventScope);
+        // 通知中心，注册发布者、订阅者
         NotifyCenter.registerToPublisher(InstancesChangeEvent.class, 16384);
         NotifyCenter.registerSubscriber(changeNotifier);
+        // 服务信息容器
         this.serviceInfoHolder = new ServiceInfoHolder(namespace, this.notifierEventScope, nacosClientProperties);
         this.clientProxy = new NamingClientProxyDelegate(this.namespace, serviceInfoHolder, nacosClientProperties, changeNotifier);
     }

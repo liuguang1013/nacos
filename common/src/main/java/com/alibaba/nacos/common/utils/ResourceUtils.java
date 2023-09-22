@@ -41,11 +41,14 @@ public class ResourceUtils {
     /**
      * Returns the URL of the resource on the classpath.
      *
+     * 返回 日志配置文件的 URL
+     *
      * @param resource The resource to find
      * @return The resource
      * @throws IOException If the resource cannot be found or read
      */
     public static URL getResourceUrl(String resource) throws IOException {
+
         if (resource.startsWith(CLASSPATH_PREFIX)) {
             String path = resource.substring(CLASSPATH_PREFIX.length());
             

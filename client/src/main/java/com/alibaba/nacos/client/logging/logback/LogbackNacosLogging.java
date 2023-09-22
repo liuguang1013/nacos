@@ -48,6 +48,7 @@ public class LogbackNacosLogging extends AbstractNacosLogging {
      */
     public LogbackNacosLogging() {
         try {
+            // 判断 日志框架的版本
             Class.forName("ch.qos.logback.core.model.Model");
         } catch (ClassNotFoundException e) {
             userVersion = 1;
@@ -56,6 +57,7 @@ public class LogbackNacosLogging extends AbstractNacosLogging {
     
     @Override
     public void loadConfiguration() {
+        // 在开始的时候，加载日志配置
         LoggerContext loggerContext = loadConfigurationOnStart();
         if (loggerContext.getObject(CoreConstants.RECONFIGURE_ON_CHANGE_TASK) != null && !hasListener(loggerContext)) {
             addListener(loggerContext);

@@ -38,7 +38,7 @@ public abstract class Subscriber<T extends Event> {
     
     /**
      * Type of this subscriber's subscription.
-     *
+     * 此订阅者的订阅类型。
      * @return Class which extends {@link Event}
      */
     public abstract Class<? extends Event> subscribeType();
@@ -54,7 +54,7 @@ public abstract class Subscriber<T extends Event> {
     
     /**
      * Whether to ignore expired events.
-     *
+     *  是够忽视过期的事件
      * @return default value is {@link Boolean#FALSE}
      */
     public boolean ignoreExpireEvent() {

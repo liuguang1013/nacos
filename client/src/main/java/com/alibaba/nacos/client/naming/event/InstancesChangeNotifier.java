@@ -35,12 +35,15 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A subscriber to notify eventListener callback.
- *
+ *  实例改变 通知器
+ *  是 实例改变的事件 订阅者
  * @author horizonzy
  * @since 1.4.1
  */
 public class InstancesChangeNotifier extends Subscriber<InstancesChangeEvent> {
-    
+    /**
+     * UUID
+     */
     private final String eventScope;
     
     private final Map<String, ConcurrentHashSet<EventListener>> listenerMap = new ConcurrentHashMap<>();

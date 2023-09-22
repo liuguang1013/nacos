@@ -24,6 +24,8 @@ import java.util.Properties;
 /**
  * Naming Factory.
  *
+ * 只有NacosFactory 调用
+ *
  * @author nkorange
  */
 public class NamingFactory {
