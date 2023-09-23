@@ -43,8 +43,9 @@ public class Header {
     private static final String DEFAULT_CHARSET = "UTF-8";
     
     private static final String DEFAULT_ENCODING = "gzip";
-    
+
     private Header() {
+        // 初始化 Content-Type：application/json;charset=UTF-8
         header = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         originalResponseHeader = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         addParam(HttpHeaderConsts.CONTENT_TYPE, MediaType.APPLICATION_JSON);

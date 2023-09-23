@@ -42,9 +42,12 @@ public final class JacksonUtils {
 
     private JacksonUtils() {
     }
-    
+
     static ObjectMapper mapper = new ObjectMapper();
-    
+
+    /**
+     * 初始化
+     */
     static {
         mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         mapper.setSerializationInclusion(Include.NON_NULL);

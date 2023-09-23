@@ -67,7 +67,12 @@ public class FailoverReactor implements Closeable {
     private final Map<String, String> switchParams = new ConcurrentHashMap<>();
     
     private static final long DAY_PERIOD_MINUTES = 24 * 60;
-    
+
+    /**
+     *  ${jmSnapshotPath}/nacos/${namingCacheRegistryDir}/naming/${namespace}/failover
+     *  或者
+     *   ${user.home}/nacos/${namingCacheRegistryDir}/naming/${namespace}/failover
+     */
     private final String failoverDir;
     
     private final ServiceInfoHolder serviceInfoHolder;
@@ -89,24 +94,29 @@ public class FailoverReactor implements Closeable {
     
     /**
      * Init.
+     * 将 serviceInfoHolder 中的服务信息 持久化到 failoverDir路径下磁盘中，之后每天持久化一次
+     * 同时每 5s 检查一次，是否 失败恢复开关打开，打开就加载 failoverDir 路径下服务信息到 FailoverReactor.serviceMap 中
+     *
      */
     public void init() {
-        
+        // 初始无延迟，之后每 5s 执行一次
         executorService.scheduleWithFixedDelay(new SwitchRefresher(), 0L, 5000L, TimeUnit.MILLISECONDS);
-        
+        // 初始延迟30 ms，之后每天之执行一次
         executorService.scheduleWithFixedDelay(new DiskFileWriter(), 30, DAY_PERIOD_MINUTES, TimeUnit.MINUTES);
         
         // backup file on startup if failover directory is empty.
+        // 延迟 10s 后执行一次
         executorService.schedule(() -> {
             try {
                 File cacheDir = new File(failoverDir);
-
+                // 创建 失败重试文件夹
                 if (!cacheDir.exists() && !cacheDir.mkdirs()) {
                     throw new IllegalStateException("failed to create cache dir: " + failoverDir);
                 }
 
                 File[] files = cacheDir.listFiles();
                 if (files == null || files.length <= 0) {
+                    // 空文件夹 执行一次任务
                     new DiskFileWriter().run();
                 }
             } catch (Throwable e) {
@@ -137,7 +147,10 @@ public class FailoverReactor implements Closeable {
         ThreadUtils.shutdownThreadPool(executorService, NAMING_LOGGER);
         NAMING_LOGGER.info("{} do shutdown stop", className);
     }
-    
+
+    /**
+     * 切换刷新器
+     */
     class SwitchRefresher implements Runnable {
         
         long lastModifiedMillis = 0L;
@@ -146,26 +159,31 @@ public class FailoverReactor implements Closeable {
         public void run() {
             try {
                 File switchFile = Paths.get(failoverDir, UtilAndComs.FAILOVER_SWITCH).toFile();
+                // 00-00---000-VIPSRV_FAILOVER_SWITCH-000---00-00 文件不存在
                 if (!switchFile.exists()) {
+                    // 设置参数： 失败转移模式  false
                     switchParams.put(FAILOVER_MODE_PARAM, Boolean.FALSE.toString());
                     NAMING_LOGGER.debug("failover switch is not found, {}", switchFile.getName());
                     return;
                 }
-                
+                // 文件上次修改时间
                 long modified = switchFile.lastModified();
-                
+                // 文件上次修改时间 大于 内存中保存的时间
                 if (lastModifiedMillis < modified) {
                     lastModifiedMillis = modified;
                     String failover = ConcurrentDiskUtil.getFileContent(failoverDir + UtilAndComs.FAILOVER_SWITCH,
                             Charset.defaultCharset().toString());
+                    // 文件内容不为空
                     if (!StringUtils.isEmpty(failover)) {
                         String[] lines = failover.split(DiskCache.getLineSeparator());
                         
                         for (String line : lines) {
                             String line1 = line.trim();
                             if (IS_FAILOVER_MODE.equals(line1)) {
+                                // 失败转移 模式打开
                                 switchParams.put(FAILOVER_MODE_PARAM, Boolean.TRUE.toString());
                                 NAMING_LOGGER.info("failover-mode is on");
+                                // 执行 失败转移任务
                                 new FailoverFileReader().run();
                             } else if (NO_FAILOVER_MODE.equals(line1)) {
                                 switchParams.put(FAILOVER_MODE_PARAM, Boolean.FALSE.toString());
@@ -206,13 +224,13 @@ public class FailoverReactor implements Closeable {
                     if (!file.isFile()) {
                         continue;
                     }
-                    
+                    // 跳过 失败转移开关文件
                     if (file.getName().equals(UtilAndComs.FAILOVER_SWITCH)) {
                         continue;
                     }
                     
                     ServiceInfo dom = null;
-                    
+                    // 加载文件信息
                     try {
                         dom = new ServiceInfo(URLDecoder.decode(file.getName(), StandardCharsets.UTF_8.name()));
                         String dataString = ConcurrentDiskUtil.getFileContent(file,
@@ -260,6 +278,7 @@ public class FailoverReactor implements Closeable {
             Map<String, ServiceInfo> map = serviceInfoHolder.getServiceInfoMap();
             for (Map.Entry<String, ServiceInfo> entry : map.entrySet()) {
                 ServiceInfo serviceInfo = entry.getValue();
+                // 以下服务名 不持久化
                 if (StringUtils.equals(serviceInfo.getKey(), UtilAndComs.ALL_IPS) || StringUtils
                         .equals(serviceInfo.getName(), UtilAndComs.ENV_LIST_KEY) || StringUtils
                         .equals(serviceInfo.getName(), UtilAndComs.ENV_CONFIGS) || StringUtils

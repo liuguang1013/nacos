@@ -25,7 +25,7 @@ import java.lang.reflect.Type;
 
 /**
  * string response handler, Mainly converter response type as string type.
- *
+ * 将字符串类型 转换为 HttpRestResult
  * @author mai.jh
  */
 public class StringResponseHandler extends AbstractResponseHandler<String> {

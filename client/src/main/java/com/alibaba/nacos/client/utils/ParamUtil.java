@@ -204,8 +204,10 @@ public class ParamUtil {
      */
     public static String parsingEndpointRule(String endpointUrl) {
         // If entered in the configuration file, the priority in ENV will be given priority.
+        // 如果在配置文件中输入，则ENV中的优先级将被优先考虑。
         if (endpointUrl == null || !PATTERN.matcher(endpointUrl).find()) {
             // skip retrieve from system property and retrieve directly from system env
+            // 跳过从系统属性中检索，直接从系统环境中检索
             String endpointUrlSource = NacosClientProperties.PROTOTYPE.getProperty(PropertyKeyConst.SystemEnv.ALIBABA_ALIWARE_ENDPOINT_URL);
             if (StringUtils.isNotBlank(endpointUrlSource)) {
                 endpointUrl = endpointUrlSource;

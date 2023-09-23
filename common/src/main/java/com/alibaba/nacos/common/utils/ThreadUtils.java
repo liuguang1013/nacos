@@ -106,6 +106,8 @@ public final class ThreadUtils {
     /**
      * Through the number of cores, calculate the appropriate number of threads.
      *
+     * 通过服务器核数，计算合适的线程数量
+     *
      * @param threadMultiple multiple time of cores
      * @return thread count
      */

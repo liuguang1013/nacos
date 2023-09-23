@@ -45,7 +45,7 @@ public class NamingUtils {
     
     /**
      * Returns a combined string with serviceName and groupName. serviceName can not be nil.
-     *
+     * 返回包含serviceName和groupName的组合字符串。serviceName不能为空。
      * <p>In most cases, serviceName can not be nil. In other cases, for search or anything, See {@link
      * com.alibaba.nacos.api.naming.utils.NamingUtils#getGroupedNameOptional(String, String)}
      *
@@ -64,6 +64,7 @@ public class NamingUtils {
             throw new IllegalArgumentException("Param 'groupName' is illegal, groupName is blank");
         }
         final String resultGroupedName = groupName + Constants.SERVICE_INFO_SPLITER + serviceName;
+        // native 方法 值相同的字符串指向一个地址
         return resultGroupedName.intern();
     }
     

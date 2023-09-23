@@ -62,7 +62,7 @@ public class DiskCache {
             }
             
             StringBuilder keyContentBuffer = new StringBuilder();
-            
+            // 获取从服务端获取的 json 串
             String json = dom.getJsonFromServer();
             
             if (StringUtils.isEmpty(json)) {
@@ -72,6 +72,7 @@ public class DiskCache {
             keyContentBuffer.append(json);
             
             //Use the concurrent API to ensure the consistency.
+            // 使用 并发 api 确保一致性
             ConcurrentDiskUtil.writeFileContent(file, keyContentBuffer.toString(), Charset.defaultCharset().toString());
             
         } catch (Throwable e) {
@@ -86,6 +87,9 @@ public class DiskCache {
     /**
      * Read service info from disk.
      *
+     * 在磁盘读取服务信息的缓存数据
+     * 返回 map 中 key 是： ${clusters}@@${groupName}@@${groupName}
+     *
      * @param cacheDir cache file dir
      * @return service infos
      */
@@ -95,6 +99,7 @@ public class DiskCache {
         BufferedReader reader = null;
         try {
             File[] files = makeSureCacheDirExists(cacheDir).listFiles();
+            // 为空直接返回
             if (files == null || files.length == 0) {
                 return domMap;
             }
@@ -105,9 +110,10 @@ public class DiskCache {
                 }
                 
                 String fileName = URLDecoder.decode(file.getName(), "UTF-8");
-                
+                // 文件名 不是 '@@meta' 、'@@special-url' 结尾
                 if (!(fileName.endsWith(Constants.SERVICE_INFO_SPLITER + "meta") || fileName
                         .endsWith(Constants.SERVICE_INFO_SPLITER + "special-url"))) {
+                    // 创建服务信息对象
                     ServiceInfo dom = new ServiceInfo(fileName);
                     List<Instance> ips = new ArrayList<>();
                     dom.setHosts(ips);
@@ -115,6 +121,7 @@ public class DiskCache {
                     ServiceInfo newFormat = null;
                     
                     try {
+                        // itodo：此处加锁获取文件内容的作用？
                         String dataString = ConcurrentDiskUtil
                                 .getFileContent(file, Charset.defaultCharset().toString());
                         reader = new BufferedReader(new StringReader(dataString));
@@ -125,9 +132,9 @@ public class DiskCache {
                                 if (!json.startsWith("{")) {
                                     continue;
                                 }
-                                
+                                // 转换为 服务信息对象
                                 newFormat = JacksonUtils.toObj(json, ServiceInfo.class);
-                                
+                                // 服务信息名 转化为 实例对象
                                 if (StringUtils.isEmpty(newFormat.getName())) {
                                     ips.add(JacksonUtils.toObj(json, Instance.class));
                                 }
@@ -161,11 +168,17 @@ public class DiskCache {
         
         return domMap;
     }
-    
+
+    /**
+     * 确定 缓存地址存在
+     * @param dir
+     * @return
+     */
     private static File makeSureCacheDirExists(String dir) {
         File cacheDir = new File(dir);
         
         if (!cacheDir.exists()) {
+            // 不存在 就创建
             if (!cacheDir.mkdirs() && !cacheDir.exists()) {
                 throw new IllegalStateException("failed to create cache dir: " + dir);
             }

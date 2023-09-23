@@ -333,7 +333,7 @@ public class IoUtils {
     
     /**
      * Close closable object quietly.
-     *
+     *  关闭 可关闭的对象
      * @param closeable http connection
      */
     public static void closeQuietly(Closeable closeable) {

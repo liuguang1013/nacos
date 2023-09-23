@@ -51,6 +51,7 @@ public final class TlsSystemConfig {
     
     /**
      * To determine whether use SSL in client-side.
+     * 确定是否在客户端使用SSL。
      */
     public static boolean tlsEnable = Boolean.parseBoolean(System.getProperty(TLS_ENABLE, "false"));
     

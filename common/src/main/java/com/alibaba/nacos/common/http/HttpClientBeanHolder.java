@@ -29,13 +29,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Create a rest template to ensure that each custom client config and rest template are in one-to-one correspondence.
- *
+ * 创建一个rest模板，以确保每个自定义客户端配置和rest模板是一一对应的。
  * @author mai.jh
  */
 public final class HttpClientBeanHolder {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientBeanHolder.class);
-    
+    /**
+     * NacosRestTemplate 单例对象缓存map
+     * key：HttpClientFactory 的类名
+     *
+     */
     private static final Map<String, NacosRestTemplate> SINGLETON_REST = new HashMap<>(10);
     
     private static final Map<String, NacosAsyncRestTemplate> SINGLETON_ASYNC_REST = new HashMap<>(10);
@@ -43,25 +47,35 @@ public final class HttpClientBeanHolder {
     private static final AtomicBoolean ALREADY_SHUTDOWN = new AtomicBoolean(false);
     
     static {
+        // 添加钩子函数
         ThreadUtils.addShutdownHook(HttpClientBeanHolder::shutdown);
     }
     
     public static NacosRestTemplate getNacosRestTemplate(Logger logger) {
         return getNacosRestTemplate(new DefaultHttpClientFactory(logger));
     }
-    
+
+    /**
+     * 通过 工厂类获取 nacosRestTemplate
+     * 不同工厂类，初始化不同的 HttpClientConfig 配置 连接超时、读超时时间
+     * @param httpClientFactory
+     * @return
+     */
     public static NacosRestTemplate getNacosRestTemplate(HttpClientFactory httpClientFactory) {
         if (httpClientFactory == null) {
             throw new NullPointerException("httpClientFactory is null");
         }
+        // NamingHttpClientFactory
         String factoryName = httpClientFactory.getClass().getName();
         NacosRestTemplate nacosRestTemplate = SINGLETON_REST.get(factoryName);
+        // 获取单例
         if (nacosRestTemplate == null) {
             synchronized (SINGLETON_REST) {
                 nacosRestTemplate = SINGLETON_REST.get(factoryName);
                 if (nacosRestTemplate != null) {
                     return nacosRestTemplate;
                 }
+                // 创建 nacosRestTemplate
                 nacosRestTemplate = httpClientFactory.createNacosRestTemplate();
                 SINGLETON_REST.put(factoryName, nacosRestTemplate);
             }
@@ -96,12 +110,14 @@ public final class HttpClientBeanHolder {
      * Shutdown common http client.
      */
     private static void shutdown() {
+        // 保证只有一个线程处理
         if (!ALREADY_SHUTDOWN.compareAndSet(false, true)) {
             return;
         }
         LOGGER.warn("[HttpClientBeanHolder] Start destroying common HttpClient");
         
         try {
+            // 关闭
             shutdown(DefaultHttpClientFactory.class.getName());
         } catch (Exception ex) {
             LOGGER.error("An exception occurred when the common HTTP client was closed : {}",

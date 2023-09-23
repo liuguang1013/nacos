@@ -58,7 +58,9 @@ import static com.alibaba.nacos.common.constant.RequestUrlConstants.HTTP_PREFIX;
  * @author xiweng.yy
  */
 public class ServerListManager implements ServerListFactory, Closeable {
-    
+    /**
+     * 通过 http 管理者 获取实例
+     */
     private final NacosRestTemplate nacosRestTemplate = NamingHttpClientManager.getInstance().getNacosRestTemplate();
     
     private final long refreshServerListInternal = TimeUnit.SECONDS.toMillis(30);
@@ -85,6 +87,7 @@ public class ServerListManager implements ServerListFactory, Closeable {
     
     public ServerListManager(NacosClientProperties properties, String namespace) {
         this.namespace = namespace;
+        // 初始化 服务端地址
         initServerAddr(properties);
         if (!serverList.isEmpty()) {
             currentIndex.set(new Random().nextInt(serverList.size()));
@@ -95,7 +98,9 @@ public class ServerListManager implements ServerListFactory, Closeable {
     }
     
     private void initServerAddr(NacosClientProperties properties) {
+        // itodo：此处是够配置了默认值？
         this.endpoint = InitUtils.initEndpoint(properties);
+        // 获取服务端地址
         if (StringUtils.isNotEmpty(endpoint)) {
             this.serversFromEndpoint = getServerListFromEndpoint();
             refreshServerListExecutor = new ScheduledThreadPoolExecutor(1,
@@ -116,11 +121,13 @@ public class ServerListManager implements ServerListFactory, Closeable {
     
     private List<String> getServerListFromEndpoint() {
         try {
+            // http:// /nacos/serverlist
             String urlString = HTTP_PREFIX + endpoint + "/nacos/serverlist";
             Header header = NamingHttpUtil.builderHeader();
             Query query = StringUtils.isNotBlank(namespace)
                     ? Query.newInstance().addParam("namespace", namespace)
                     : Query.EMPTY;
+            // 使用 nacosRestTemplate 调用
             HttpRestResult<String> restResult = nacosRestTemplate.get(urlString, header, query, String.class);
             if (!restResult.ok()) {
                 throw new IOException(

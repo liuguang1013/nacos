@@ -57,7 +57,10 @@ public class ServiceInfoHolder implements Closeable {
     private static final String FILE_PATH_NAMING = "naming";
     
     private static final String USER_HOME_PROPERTY = "user.home";
-    
+    /**
+     * 服务信息缓存
+     * key: ${clusters}@@${groupName}@@${groupName}
+     */
     private final ConcurrentMap<String, ServiceInfo> serviceInfoMap;
     
     private final FailoverReactor failoverReactor;
@@ -71,18 +74,23 @@ public class ServiceInfoHolder implements Closeable {
     public ServiceInfoHolder(String namespace, String notifierEventScope, NacosClientProperties properties) {
         // 初始化缓存路径
         initCacheDir(namespace, properties);
-
+        // 判断是否在开始时候 加载缓存
         if (isLoadCacheAtStart(properties)) {
             this.serviceInfoMap = new ConcurrentHashMap<>(DiskCache.read(this.cacheDir));
         } else {
             this.serviceInfoMap = new ConcurrentHashMap<>(16);
         }
+        // 创建失败恢复器
+        // itodo：失败恢复器什么时候起作用？解决：失败恢复开关打开的时候 使用这个对象返回服务信息对象
         this.failoverReactor = new FailoverReactor(this, cacheDir);
+        // 获取配置 推送空保护
+        // itodo：推送空保护什么时候起作用？
         this.pushEmptyProtection = isPushEmptyProtect(properties);
         this.notifierEventScope = notifierEventScope;
     }
     
     private void initCacheDir(String namespace, NacosClientProperties properties) {
+        // JM.SNAPSHOT.PATH 参数
         String jmSnapshotPath = properties.getProperty(JM_SNAPSHOT_PATH_PROPERTY);
     
         String namingCacheRegistryDir = "";
@@ -91,14 +99,19 @@ public class ServiceInfoHolder implements Closeable {
         }
         
         if (!StringUtils.isBlank(jmSnapshotPath)) {
+            //  缓存地址： ${jmSnapshotPath}/nacos/${namingCacheRegistryDir}/naming/${namespace}
             cacheDir = jmSnapshotPath + File.separator + FILE_PATH_NACOS + namingCacheRegistryDir
                     + File.separator + FILE_PATH_NAMING + File.separator + namespace;
         } else {
+            //  缓存地址： ${user.home}/nacos/${namingCacheRegistryDir}/naming/${namespace}
             cacheDir = properties.getProperty(USER_HOME_PROPERTY) + File.separator + FILE_PATH_NACOS + namingCacheRegistryDir
                     + File.separator + FILE_PATH_NAMING + File.separator + namespace;
         }
     }
-    
+
+    /**
+     * 获取属性：开始的时候加载缓存 namingLoadCacheAtStart
+     */
     private boolean isLoadCacheAtStart(NacosClientProperties properties) {
         boolean loadCacheAtStart = false;
         if (properties != null && StringUtils
@@ -108,7 +121,10 @@ public class ServiceInfoHolder implements Closeable {
         }
         return loadCacheAtStart;
     }
-    
+
+    /**
+     * 获取属性：开始的时候加载缓存
+     */
     private boolean isPushEmptyProtect(NacosClientProperties properties) {
         boolean pushEmptyProtection = false;
         if (properties != null && StringUtils
@@ -127,6 +143,7 @@ public class ServiceInfoHolder implements Closeable {
         NAMING_LOGGER.debug("failover-mode: {}", failoverReactor.isFailoverSwitch());
         String groupedServiceName = NamingUtils.getGroupedName(serviceName, groupName);
         String key = ServiceInfo.getKey(groupedServiceName, clusters);
+        // 判断失败恢复开关是否打开
         if (failoverReactor.isFailoverSwitch()) {
             return failoverReactor.getService(key);
         }

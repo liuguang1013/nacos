@@ -66,17 +66,25 @@ public class PropertyKeyConst {
     public static final String ENABLE_REMOTE_SYNC_CONFIG = "enableRemoteSyncConfig";
     
     public static final String NAMING_LOAD_CACHE_AT_START = "namingLoadCacheAtStart";
-    
+
+    /**
+     * 命名服务注册缓存 地址
+     */
     public static final String NAMING_CACHE_REGISTRY_DIR = "namingCacheRegistryDir";
     
     public static final String NAMING_CLIENT_BEAT_THREAD_COUNT = "namingClientBeatThreadCount";
-    
+
+    /**
+     * 命名服务轮询线程数
+     */
     public static final String NAMING_POLLING_THREAD_COUNT = "namingPollingThreadCount";
     
     public static final String NAMING_REQUEST_DOMAIN_RETRY_COUNT = "namingRequestDomainMaxRetryCount";
     
     public static final String NAMING_PUSH_EMPTY_PROTECTION = "namingPushEmptyProtection";
-    
+    /**
+     * 是否异步查询订阅服务
+     */
     public static final String NAMING_ASYNC_QUERY_SUBSCRIBE_SERVICE = "namingAsyncQuerySubscribeService";
     
     /**

@@ -39,7 +39,7 @@ import java.util.Map;
 
 /**
  * JDK http client request implement.
- *
+ * JDK http客户端请求实现。
  * @author mai.jh
  */
 public class JdkHttpClientRequest implements HttpClientRequest {

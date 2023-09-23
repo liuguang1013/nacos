@@ -105,7 +105,7 @@ public class InitUtils {
     
     /**
      * Init end point.
-     *
+     * 初始化端点
      * @param properties properties
      * @return end point
      */
@@ -115,6 +115,7 @@ public class InitUtils {
             return "";
         }
         // Whether to enable domain name resolution rules
+        // 属性获取：是否开启域名解析规则
         String isUseEndpointRuleParsing = properties.getProperty(PropertyKeyConst.IS_USE_ENDPOINT_PARSING_RULE,
                 properties.getProperty(SystemPropertyKeyConst.IS_USE_ENDPOINT_PARSING_RULE,
                         String.valueOf(ParamUtil.USE_ENDPOINT_PARSING_RULE_DEFAULT_VALUE)));
@@ -123,6 +124,7 @@ public class InitUtils {
         String endpointUrl;
         if (isUseEndpointParsingRule) {
             // Get the set domain name information
+            // 获取设置的域名信息
             endpointUrl = ParamUtil.parsingEndpointRule(properties.getProperty(PropertyKeyConst.ENDPOINT));
             if (StringUtils.isBlank(endpointUrl)) {
                 return "";

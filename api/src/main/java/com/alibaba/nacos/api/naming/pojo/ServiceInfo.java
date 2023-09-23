@@ -83,8 +83,12 @@ public class ServiceInfo {
     }
     
     /**
+     * itodo：发现注解有问题： 应该是 key:groupName@@name@@clusters
      * There is only one form of the key:groupName@@name@clusters. This constructor used by DiskCache.read(String) and
      * FailoverReactor.FailoverFileReader,you should know that 'groupName' must not be null,and 'clusters' can be null.
+     * 这里只有一种形式的键:groupName@@name@clusters。
+     * 这个构造函数被DiskCache.read(String)和FailoverReactor使用。
+     * FailoverFileReader，你应该知道'groupName'不能为空，'clusters'可以为空。
      */
     public ServiceInfo(final String key) {
         String[] keys = key.split(Constants.SERVICE_INFO_SPLITER);
@@ -216,7 +220,13 @@ public class ServiceInfo {
         String serviceName = getGroupedServiceName();
         return getKey(serviceName, clusters);
     }
-    
+
+    /**
+     *
+     * @param name  举例： ${clusters}@@${groupName}@@${groupName}
+     * @param clusters
+     * @return
+     */
     @JsonIgnore
     public static String getKey(String name, String clusters) {
         
@@ -236,7 +246,12 @@ public class ServiceInfo {
         }
         return getKey(serviceName, clusters);
     }
-    
+
+    /**
+     * 获取 带组名的服务名
+     * 例： ${groupName}@@${groupName}
+     * @return
+     */
     private String getGroupedServiceName() {
         String serviceName = this.name;
         if (!isEmpty(groupName) && !serviceName.contains(Constants.SERVICE_INFO_SPLITER)) {

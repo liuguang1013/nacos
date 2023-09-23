@@ -24,7 +24,7 @@ import java.util.Map;
 
 /**
  * Represents an HTTP request , consisting of headers and body.
- *
+ * http 请求对象
  * @author mai.jh
  */
 public class RequestHttpEntity {

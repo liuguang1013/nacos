@@ -68,10 +68,13 @@ public abstract class AbstractHttpClientFactory implements HttpClientFactory {
     @Override
     public NacosRestTemplate createNacosRestTemplate() {
         HttpClientConfig httpClientConfig = buildHttpClientConfig();
+
         final JdkHttpClientRequest clientRequest = new JdkHttpClientRequest(httpClientConfig);
         
-        // enable ssl
+        // enable ssl （Secure Sockets Layer 安全套接层）
+        // 初始化 TLS （Transport Layer Security 安全传输层协议）
         initTls((sslContext, hostnameVerifier) -> {
+            // 设置 SSLContext、hostnameVerifier
             clientRequest.setSSLContext(loadSSLContext());
             clientRequest.replaceSSLHostnameVerifier(hostnameVerifier);
         }, filePath -> clientRequest.setSSLContext(loadSSLContext()));
@@ -174,6 +177,7 @@ public abstract class AbstractHttpClientFactory implements HttpClientFactory {
     
     protected void initTls(BiConsumer<SSLContext, HostnameVerifier> initTlsBiFunc,
             TlsFileWatcher.FileChangeListener tlsChangeListener) {
+        // 默认 false
         if (!TlsSystemConfig.tlsEnable) {
             return;
         }
@@ -196,9 +200,11 @@ public abstract class AbstractHttpClientFactory implements HttpClientFactory {
     
     @SuppressWarnings("checkstyle:abbreviationaswordinname")
     protected synchronized SSLContext loadSSLContext() {
+        // 默认 false
         if (!TlsSystemConfig.tlsEnable) {
             return null;
         }
+        // 创建 SSL 上下文
         try {
             return TlsHelper.buildSslContext(true);
         } catch (NoSuchAlgorithmException | KeyManagementException e) {

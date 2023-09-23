@@ -36,18 +36,23 @@ import java.util.Map;
  */
 @SuppressWarnings("all")
 public abstract class AbstractNacosRestTemplate {
-    
+    /**
+     * 缓存 不同类型的 response 处理器
+     *  ResponseHandlerType 中的三种
+     */
     private final Map<String, ResponseHandler> responseHandlerMap = new HashMap<String, ResponseHandler>();
     
     protected final Logger logger;
     
     public AbstractNacosRestTemplate(Logger logger) {
         this.logger = logger;
+        // 设置默认的 Response 处理器
         initDefaultResponseHandler();
     }
-    
+
     private void initDefaultResponseHandler() {
         // init response handler
+        // 三种 处理器都是将结果处理成 HttpRestResult 类型的响应
         responseHandlerMap.put(ResponseHandlerType.STRING_TYPE, new StringResponseHandler());
         responseHandlerMap.put(ResponseHandlerType.RESTRESULT_TYPE, new RestResultResponseHandler());
         responseHandlerMap.put(ResponseHandlerType.DEFAULT_BEAN_TYPE, new BeanResponseHandler());

@@ -65,7 +65,9 @@ public class ServiceInfoUpdateService implements Closeable {
     
     public ServiceInfoUpdateService(NacosClientProperties properties, ServiceInfoHolder serviceInfoHolder,
             NamingClientProxy namingClientProxy, InstancesChangeNotifier changeNotifier) {
+        // 获取配置 是否异步查询订阅服务，默认 false
         this.asyncQuerySubscribeService = isAsyncQueryForSubscribeService(properties);
+        // 初始化线程池
         this.executor = new ScheduledThreadPoolExecutor(initPollingThreadCount(properties),
                 new NameThreadFactory("com.alibaba.nacos.client.naming.updater"));
         this.serviceInfoHolder = serviceInfoHolder;
@@ -79,7 +81,13 @@ public class ServiceInfoUpdateService implements Closeable {
         }
         return ConvertUtils.toBoolean(properties.getProperty(PropertyKeyConst.NAMING_ASYNC_QUERY_SUBSCRIBE_SERVICE), false);
     }
-    
+
+    /**
+     * 初始化轮询线程数量
+     *
+     * @param properties
+     * @return
+     */
     private int initPollingThreadCount(NacosClientProperties properties) {
         if (properties == null) {
             return UtilAndComs.DEFAULT_POLLING_THREAD_COUNT;

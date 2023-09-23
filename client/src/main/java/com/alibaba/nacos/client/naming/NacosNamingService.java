@@ -115,6 +115,7 @@ public class NacosNamingService implements NamingService {
         NotifyCenter.registerSubscriber(changeNotifier);
         // 服务信息容器
         this.serviceInfoHolder = new ServiceInfoHolder(namespace, this.notifierEventScope, nacosClientProperties);
+        // 创建客户端代理
         this.clientProxy = new NamingClientProxyDelegate(this.namespace, serviceInfoHolder, nacosClientProperties, changeNotifier);
     }
     

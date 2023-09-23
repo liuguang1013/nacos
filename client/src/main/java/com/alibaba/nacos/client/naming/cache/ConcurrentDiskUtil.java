@@ -33,7 +33,7 @@ import static com.alibaba.nacos.client.utils.LogUtils.NAMING_LOGGER;
 
 /**
  * Concurrent Disk util.
- *
+ * 并发磁盘工具类
  * @author nkorange
  */
 public class ConcurrentDiskUtil {
@@ -72,17 +72,22 @@ public class ConcurrentDiskUtil {
         FileLock rlock = null;
         try {
             fis = new RandomAccessFile(file, READ_ONLY);
+            // 获取文件通道
             FileChannel fcin = fis.getChannel();
             int i = 0;
+            // 对文件内容加锁
             do {
                 try {
+                    // itodo： 需要拓展知识点
                     rlock = fcin.tryLock(0L, Long.MAX_VALUE, true);
                 } catch (Exception e) {
                     ++i;
+                    // 重试 10 次
                     if (i > RETRY_COUNT) {
                         NAMING_LOGGER.error("[NA] read " + file.getName() + " fail;retryed time: " + i, e);
                         throw new IOException("read " + file.getAbsolutePath() + " conflict");
                     }
+                    // 时间逐渐递增： 10 20 30 。。。
                     sleep(SLEEP_BASETIME * i);
                     NAMING_LOGGER.warn("read " + file.getName() + " conflict;retry time: " + i);
                 }
@@ -94,6 +99,7 @@ public class ConcurrentDiskUtil {
             return byteBufferToString(byteBuffer, charsetName);
         } finally {
             if (rlock != null) {
+                // 释放锁
                 rlock.release();
                 rlock = null;
             }
@@ -120,7 +126,7 @@ public class ConcurrentDiskUtil {
     
     /**
      * write file content.
-     *
+     * 并发安全的写数据
      * @param file        file
      * @param content     content
      * @param charsetName charsetName
@@ -158,6 +164,7 @@ public class ConcurrentDiskUtil {
             while (sendBuffer.hasRemaining()) {
                 channel.write(sendBuffer);
             }
+            // itodo：待学习方法的作用
             channel.truncate(contentBytes.length);
         } catch (FileNotFoundException e) {
             throw new IOException("file not exist");
@@ -193,7 +200,7 @@ public class ConcurrentDiskUtil {
     
     /**
      * transfer ByteBuffer to String.
-     *
+     * 字节数组转换为字符串
      * @param buffer      buffer
      * @param charsetName charsetName
      * @return String
