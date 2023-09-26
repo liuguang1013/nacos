@@ -31,7 +31,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * a ClientAuthService implement.
- *
+ * 客户端认证服务实现类
  * @author wuyfee
  */
 
@@ -41,6 +41,7 @@ public class NacosClientAuthServiceImpl extends AbstractClientAuthService {
     
     /**
      * TTL of token in seconds.
+     *
      */
     private long tokenTtl;
     
@@ -51,6 +52,7 @@ public class NacosClientAuthServiceImpl extends AbstractClientAuthService {
     
     /**
      * time window to refresh security info in seconds.
+     * 以秒为单位刷新安全信息的时间窗口。
      */
     private long tokenRefreshWindow;
     
@@ -69,6 +71,7 @@ public class NacosClientAuthServiceImpl extends AbstractClientAuthService {
     @Override
     public Boolean login(Properties properties) {
         try {
+
             if ((System.currentTimeMillis() - lastRefreshTime) < TimeUnit.SECONDS
                     .toMillis(tokenTtl - tokenRefreshWindow)) {
                 return true;

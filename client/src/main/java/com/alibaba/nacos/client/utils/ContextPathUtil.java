@@ -29,7 +29,7 @@ public class ContextPathUtil {
     
     /**
      * normalize context path.
-     *
+     * 正常化 上下文路径 ， 不在根目录下的，添加根目录路径
      * @param contextPath origin context path
      * @return normalized context path
      */

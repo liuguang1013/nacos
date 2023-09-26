@@ -43,7 +43,7 @@ import static com.alibaba.nacos.common.constant.RequestUrlConstants.HTTP_PREFIX;
 
 /**
  * Login processor for Http.
- *
+ * Http登录处理器。
  * @author Nacos
  */
 public class HttpLoginProcessor implements LoginProcessor {
@@ -64,7 +64,7 @@ public class HttpLoginProcessor implements LoginProcessor {
         String contextPath = ContextPathUtil.normalizeContextPath(
                 properties.getProperty(PropertyKeyConst.CONTEXT_PATH, webContext));
         String server = properties.getProperty(NacosAuthLoginConstant.SERVER, StringUtils.EMPTY);
-        
+        //
         if (!server.startsWith(HTTPS_PREFIX) && !server.startsWith(HTTP_PREFIX)) {
             if (!InternetAddressUtil.containsPort(server)) {
                 server = server + InternetAddressUtil.IP_PORT_SPLITER + ParamUtil.getDefaultServerPort();

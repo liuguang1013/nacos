@@ -36,7 +36,10 @@ import java.util.Properties;
  * @since 1.2.0
  */
 public class SecurityProxy implements Closeable {
-    
+
+    /**
+     * 客户端 安全认证插件管理者
+     */
     private ClientAuthPluginManager clientAuthPluginManager;
     
     /**

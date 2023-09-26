@@ -33,7 +33,7 @@ import static com.alibaba.nacos.common.constant.RequestUrlConstants.HTTP_PREFIX;
 
 /**
  * http Manager.
- *
+ * 命名服务 http 管理者
  * @author mai.jh
  */
 public class NamingHttpClientManager implements Closeable {

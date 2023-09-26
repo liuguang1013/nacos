@@ -73,6 +73,7 @@ public class NamingClientProxyDelegate implements NamingClientProxy {
         // 创建服务端列表管理
         this.serverListManager = new ServerListManager(properties, namespace);
         this.serviceInfoHolder = serviceInfoHolder;
+        // 创建 安全代理
         this.securityProxy = new SecurityProxy(this.serverListManager.getServerList(),
                 NamingHttpClientManager.getInstance().getNacosRestTemplate());
         initSecurityProxy(properties);

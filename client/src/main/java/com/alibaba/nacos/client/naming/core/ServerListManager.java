@@ -70,13 +70,18 @@ public class ServerListManager implements ServerListFactory, Closeable {
     private final AtomicInteger currentIndex = new AtomicInteger();
     
     private final List<String> serverList = new ArrayList<>();
-    
+
+    /**
+     * 从 Endpoint 获取的服务列表
+     */
     private volatile List<String> serversFromEndpoint = new ArrayList<>();
     
     private ScheduledExecutorService refreshServerListExecutor;
     
     private String endpoint;
-    
+    /**
+     * 服务端地址
+     */
     private String nacosDomain;
     
     private long lastServerListRefreshTime = 0L;
@@ -90,6 +95,7 @@ public class ServerListManager implements ServerListFactory, Closeable {
         // 初始化 服务端地址
         initServerAddr(properties);
         if (!serverList.isEmpty()) {
+            // 服务端列表中，随机选个作为当前的
             currentIndex.set(new Random().nextInt(serverList.size()));
         }
         if (serverList.isEmpty() && StringUtils.isEmpty(endpoint)) {
@@ -98,17 +104,22 @@ public class ServerListManager implements ServerListFactory, Closeable {
     }
     
     private void initServerAddr(NacosClientProperties properties) {
-        // itodo：此处是够配置了默认值？
+        // itodo：此处是否配置了默认值？ 猜测是没有默认值
         this.endpoint = InitUtils.initEndpoint(properties);
-        // 获取服务端地址
+        //endpoint 方式 获取服务端地址
         if (StringUtils.isNotEmpty(endpoint)) {
+            // 获取服务端列表
             this.serversFromEndpoint = getServerListFromEndpoint();
+            // 创建线程池
             refreshServerListExecutor = new ScheduledThreadPoolExecutor(1,
                     new NameThreadFactory("com.alibaba.nacos.client.naming.server.list.refresher"));
+            // 开始启动无延迟，每 30s 刷新一次
+            // 判断是否需要刷新服务端列表
             refreshServerListExecutor
                     .scheduleWithFixedDelay(this::refreshServerListIfNeed, 0, refreshServerListInternal,
                             TimeUnit.MILLISECONDS);
         } else {
+            // 获取配置 serverAddr
             String serverListFromProps = properties.getProperty(PropertyKeyConst.SERVER_ADDR);
             if (StringUtils.isNotEmpty(serverListFromProps)) {
                 this.serverList.addAll(Arrays.asList(serverListFromProps.split(",")));
@@ -121,7 +132,8 @@ public class ServerListManager implements ServerListFactory, Closeable {
     
     private List<String> getServerListFromEndpoint() {
         try {
-            // http:// /nacos/serverlist
+            // http://${endpoint}/nacos/serverlist
+            //itodo： endpoint 这种形式和 普通代码中 url 请求有啥不同？
             String urlString = HTTP_PREFIX + endpoint + "/nacos/serverlist";
             Header header = NamingHttpUtil.builderHeader();
             Query query = StringUtils.isNotBlank(namespace)
@@ -149,21 +161,26 @@ public class ServerListManager implements ServerListFactory, Closeable {
     
     private void refreshServerListIfNeed() {
         try {
+            // 服务端列表不为空
             if (!CollectionUtils.isEmpty(serverList)) {
                 NAMING_LOGGER.debug("server list provided by user: " + serverList);
                 return;
             }
+            // 判断刷新间隔
             if (System.currentTimeMillis() - lastServerListRefreshTime < refreshServerListInternal) {
                 return;
             }
+            // 获取服务端列表
             List<String> list = getServerListFromEndpoint();
             if (CollectionUtils.isEmpty(list)) {
                 throw new Exception("Can not acquire Nacos list");
             }
+            // 服务端列表为空 / 服务端列表发生变化
             if (null == serversFromEndpoint || !CollectionUtils.isEqualCollection(list, serversFromEndpoint)) {
                 NAMING_LOGGER.info("[SERVER-LIST] server list is updated: " + list);
                 serversFromEndpoint = list;
                 lastServerListRefreshTime = System.currentTimeMillis();
+                // 发布 服务端列表改变 慢事件
                 NotifyCenter.publishEvent(new ServerListChangedEvent());
             }
         } catch (Throwable e) {

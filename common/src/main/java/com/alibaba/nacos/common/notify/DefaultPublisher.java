@@ -143,11 +143,16 @@ public class DefaultPublisher extends Thread implements EventPublisher {
     public void removeSubscriber(Subscriber subscriber) {
         subscribers.remove(subscriber);
     }
-    
+
+    /**
+     * 普通事件和慢事件 都使用 这个方法
+     */
     @Override
     public boolean publish(Event event) {
+        // 检查 事件发布者 是否启动
         checkIsStart();
         boolean success = this.queue.offer(event);
+        // 添加队列失败，可能是队列已满，直接处理事件
         if (!success) {
             LOGGER.warn("Unable to plug in due to interruption, synchronize sending time, event : {}", event);
             receiveEvent(event);

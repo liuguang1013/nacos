@@ -114,6 +114,7 @@ public class InternetAddressUtil {
     /**
      * Split IP and port strings, support IPv4 and IPv6, IP in IPv6 must be enclosed with [].
      * Illegal IP will get abnormal results.
+     *  拆分IP和端口字符串，支持IPv4和IPv6, IPv6中的IP必须用[]括起来。非法IP将得到异常结果
      *
      * @param str ip and port string
      * @return java.lang.String[]
@@ -133,6 +134,7 @@ public class InternetAddressUtil {
                 serverAddrArr[1] = str.substring((str.indexOf(IPV6_END_MARK) + 2));
             }
         } else {
+            // ipv4  拆分为端口和IP
             serverAddrArr = str.split(IP_PORT_SPLITER);
         }
         return serverAddrArr;

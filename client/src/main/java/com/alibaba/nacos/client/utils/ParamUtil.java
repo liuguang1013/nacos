@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
 
 /**
  * manage param tool.
- *
+ * 管理参数工具
  * @author nacos
  */
 public class ParamUtil {

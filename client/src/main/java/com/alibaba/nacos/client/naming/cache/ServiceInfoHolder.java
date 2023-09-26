@@ -59,7 +59,7 @@ public class ServiceInfoHolder implements Closeable {
     private static final String USER_HOME_PROPERTY = "user.home";
     /**
      * 服务信息缓存
-     * key: ${clusters}@@${groupName}@@${groupName}
+     * key: ${clusters}@@${groupName}@@${serviceName}
      */
     private final ConcurrentMap<String, ServiceInfo> serviceInfoMap;
     

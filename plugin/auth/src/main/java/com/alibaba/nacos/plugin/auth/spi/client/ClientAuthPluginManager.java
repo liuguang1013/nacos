@@ -46,7 +46,7 @@ public class ClientAuthPluginManager implements Closeable {
      * init ClientAuthService.
      */
     public void init(List<String> serverList, NacosRestTemplate nacosRestTemplate) {
-        
+        // spi 加载子类
         Collection<AbstractClientAuthService> clientAuthServices = NacosServiceLoader
                 .load(AbstractClientAuthService.class);
         for (ClientAuthService clientAuthService : clientAuthServices) {
