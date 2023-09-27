@@ -43,6 +43,7 @@ public class VersionUtils {
     private static final String NACOS_VERSION_FILE = "nacos-version.txt";
     
     static {
+        // 加载 nacos-version.txt 文件 获取版本号
         try (InputStream in = VersionUtils.class.getClassLoader().getResourceAsStream(NACOS_VERSION_FILE)) {
             Properties props = new Properties();
             props.load(in);

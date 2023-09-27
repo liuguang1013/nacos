@@ -29,7 +29,7 @@ import java.util.Set;
 
 /**
  * RpcConstants.
- *
+ * rpc 常量
  * @author githubcheng2978.
  */
 public class RpcConstants {

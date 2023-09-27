@@ -40,7 +40,10 @@ public abstract class AbstractNamingClientProxy extends Subscriber<ServerListCha
     protected AbstractNamingClientProxy(SecurityProxy securityProxy) {
         this.securityProxy = securityProxy;
     }
-    
+
+    /**
+     * 通过 securityProxy 对 请求头 获取身份信息
+     */
     protected Map<String, String> getSecurityHeaders(String namespace, String group, String serviceName) {
         RequestResource resource = RequestResource.namingBuilder().setNamespace(namespace).setGroup(group)
                 .setResource(serviceName).build();
@@ -51,6 +54,7 @@ public abstract class AbstractNamingClientProxy extends Subscriber<ServerListCha
     
     protected Map<String, String> getAppHeaders() {
         Map<String, String> result = new HashMap<>(1);
+        // 请求头添加 appName
         result.put(APP_FILED, AppNameUtils.getAppName());
         return result;
     }

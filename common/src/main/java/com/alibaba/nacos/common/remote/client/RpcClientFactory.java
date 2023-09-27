@@ -36,7 +36,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class RpcClientFactory {
     
     private static final Logger LOGGER = LoggerFactory.getLogger("com.alibaba.nacos.common.remote.client");
-    
+
+    /**
+     * 客户端缓存
+     * key ： uuid
+     */
     private static final Map<String, RpcClient> CLIENT_MAP = new ConcurrentHashMap<>();
     
     /**
@@ -103,7 +107,7 @@ public class RpcClientFactory {
         if (!ConnectionType.GRPC.equals(connectionType)) {
             throw new UnsupportedOperationException("unsupported connection type :" + connectionType.getType());
         }
-        
+        //
         return CLIENT_MAP.computeIfAbsent(clientName, clientNameInner -> {
             LOGGER.info("[RpcClientFactory] create a new rpc client of " + clientName);
             try {

@@ -43,12 +43,17 @@ public class RedoScheduledTask extends AbstractExecuteTask {
     
     @Override
     public void run() {
+        //
+        // 判断是否为 断线
         if (!redoService.isConnected()) {
             LogUtils.NAMING_LOGGER.warn("Grpc Connection is disconnect, skip current redo task");
             return;
         }
+        // 连接状态
         try {
+            // 重连实例
             redoForInstances();
+            // 重新订阅
             redoForSubscribes();
         } catch (Exception e) {
             LogUtils.NAMING_LOGGER.warn("Redo task run with unexpected exception: ", e);
@@ -56,6 +61,7 @@ public class RedoScheduledTask extends AbstractExecuteTask {
     }
     
     private void redoForInstances() {
+        // 通过 重连服务 查找实例重连数据
         for (InstanceRedoData each : redoService.findInstanceRedoData()) {
             try {
                 redoForInstance(each);
@@ -65,25 +71,33 @@ public class RedoScheduledTask extends AbstractExecuteTask {
             }
         }
     }
-    
+
+    /**
+     * 重连实例
+     * @param redoData
+     * @throws NacosException
+     */
     private void redoForInstance(InstanceRedoData redoData) throws NacosException {
         RedoData.RedoType redoType = redoData.getRedoType();
         String serviceName = redoData.getServiceName();
         String groupName = redoData.getGroupName();
         LogUtils.NAMING_LOGGER.info("Redo instance operation {} for {}@@{}", redoType, groupName, serviceName);
         switch (redoType) {
+            // 注册
             case REGISTER:
                 if (isClientDisabled()) {
                     return;
                 }
                 processRegisterRedoType(redoData, serviceName, groupName);
                 break;
+            // 取消注册
             case UNREGISTER:
                 if (isClientDisabled()) {
                     return;
                 }
                 clientProxy.doDeregisterService(serviceName, groupName, redoData.get());
                 break;
+            // 移除
             case REMOVE:
                 redoService.removeInstanceForRedo(serviceName, groupName);
                 break;
@@ -124,6 +138,7 @@ public class RedoScheduledTask extends AbstractExecuteTask {
                 if (isClientDisabled()) {
                     return;
                 }
+                // 开始订阅
                 clientProxy.doSubscribe(serviceName, groupName, cluster);
                 break;
             case UNREGISTER:
@@ -138,7 +153,11 @@ public class RedoScheduledTask extends AbstractExecuteTask {
             default:
         }
     }
-    
+
+    /**
+     * 客户端是否可用
+     * @return
+     */
     private boolean isClientDisabled() {
         return !clientProxy.isEnable();
     }

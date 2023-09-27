@@ -63,6 +63,7 @@ public class SecurityProxy implements Closeable {
         if (clientAuthPluginManager.getAuthServiceSpiImplSet().isEmpty()) {
             return;
         }
+        // 登陆所有的 客户端认证插件
         for (ClientAuthService clientAuthService : clientAuthPluginManager.getAuthServiceSpiImplSet()) {
             clientAuthService.login(properties);
         }
@@ -75,8 +76,10 @@ public class SecurityProxy implements Closeable {
      */
     public Map<String, String> getIdentityContext(RequestResource resource) {
         Map<String, String> header = new HashMap<>(1);
+        // 遍历所有 客户端认证插件 ，将每个认证插件的 ACCESSTOKEN 添加到请求头中
         for (ClientAuthService clientAuthService : clientAuthPluginManager.getAuthServiceSpiImplSet()) {
             LoginIdentityContext loginIdentityContext = clientAuthService.getLoginIdentityContext(resource);
+            // 在登陆的时候，会添加 ACCESSTOKEN
             for (String key : loginIdentityContext.getAllKey()) {
                 header.put(key, loginIdentityContext.getParameter(key));
             }

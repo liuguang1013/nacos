@@ -108,13 +108,17 @@ public class NamingHttpClientProxy extends AbstractNamingClientProxy {
     private final int maxRetry;
     
     private int serverPort = DEFAULT_SERVER_PORT;
-    
+
+    /**
+     *  监听 ServerListChangedEvent 事件
+     */
     public NamingHttpClientProxy(String namespaceId, SecurityProxy securityProxy, ServerListManager serverListManager,
             NacosClientProperties properties) {
         super(securityProxy);
         this.serverListManager = serverListManager;
         this.setServerPort(DEFAULT_SERVER_PORT);
         this.namespaceId = namespaceId;
+        // 最大重试次数，默认3次
         this.maxRetry = ConvertUtils.toInt(properties.getProperty(PropertyKeyConst.NAMING_REQUEST_DOMAIN_RETRY_COUNT,
                 String.valueOf(UtilAndComs.REQUEST_DOMAIN_RETRY_COUNT)));
     }

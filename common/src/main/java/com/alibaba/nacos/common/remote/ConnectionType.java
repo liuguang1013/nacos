@@ -18,7 +18,7 @@ package com.alibaba.nacos.common.remote;
 
 /**
  * ConnectionType.
- *
+ * 连接类型
  * @author liuzunfei
  * @version $Id: ConnectionType.java, v 0.1 2020年07月13日 7:15 PM liuzunfei Exp $
  */

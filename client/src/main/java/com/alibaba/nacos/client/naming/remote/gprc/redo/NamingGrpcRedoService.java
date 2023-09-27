@@ -38,9 +38,9 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Naming client gprc redo service.
- *
+ * 命名客户端重连服务
  * <p>When connection reconnect to server, redo the register and subscribe.
- *
+ * 当连接重新连接到服务器时，重做注册和订阅。
  * @author xiweng.yy
  */
 public class NamingGrpcRedoService implements ConnectionEventListener {
@@ -53,7 +53,10 @@ public class NamingGrpcRedoService implements ConnectionEventListener {
      * TODO get redo delay from config.
      */
     private static final long DEFAULT_REDO_DELAY = 3000L;
-    
+
+    /**
+     * 已注册的实例 数据
+     */
     private final ConcurrentMap<String, InstanceRedoData> registeredInstances = new ConcurrentHashMap<>();
     
     private final ConcurrentMap<String, SubscriberRedoData> subscribes = new ConcurrentHashMap<>();
@@ -63,7 +66,9 @@ public class NamingGrpcRedoService implements ConnectionEventListener {
     private volatile boolean connected = false;
     
     public NamingGrpcRedoService(NamingGrpcClientProxy clientProxy) {
+        // 指定 线程池的核心线程数 1
         this.redoExecutor = new ScheduledThreadPoolExecutor(REDO_THREAD, new NameThreadFactory(REDO_THREAD_NAME));
+        // 初始 3s 延迟，之后 每3s 执行一次
         this.redoExecutor.scheduleWithFixedDelay(new RedoScheduledTask(clientProxy, this), DEFAULT_REDO_DELAY,
                 DEFAULT_REDO_DELAY, TimeUnit.MILLISECONDS);
     }
@@ -188,6 +193,7 @@ public class NamingGrpcRedoService implements ConnectionEventListener {
     
     /**
      * Find all instance redo data which need do redo.
+     * 找到所有需要做重做的实例重做数据。
      *
      * @return set of {@code InstanceRedoData} need to do redo.
      */

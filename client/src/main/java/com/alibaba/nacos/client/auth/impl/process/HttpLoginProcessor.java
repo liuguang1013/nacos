@@ -64,14 +64,14 @@ public class HttpLoginProcessor implements LoginProcessor {
         String contextPath = ContextPathUtil.normalizeContextPath(
                 properties.getProperty(PropertyKeyConst.CONTEXT_PATH, webContext));
         String server = properties.getProperty(NacosAuthLoginConstant.SERVER, StringUtils.EMPTY);
-        //
+        // 补充 url 中 协议地址 和 端口号
         if (!server.startsWith(HTTPS_PREFIX) && !server.startsWith(HTTP_PREFIX)) {
             if (!InternetAddressUtil.containsPort(server)) {
                 server = server + InternetAddressUtil.IP_PORT_SPLITER + ParamUtil.getDefaultServerPort();
             }
             server = HTTP_PREFIX + server;
         }
-        
+        // 组拼完整的 url： http://${server}:8848/v1/auth/users/login
         String url = server + contextPath + LOGIN_URL;
         
         Map<String, String> params = new HashMap<>(2);
@@ -90,8 +90,10 @@ public class HttpLoginProcessor implements LoginProcessor {
             LoginIdentityContext loginIdentityContext = new LoginIdentityContext();
             
             if (obj.has(Constants.ACCESS_TOKEN)) {
+                // token
                 loginIdentityContext.setParameter(NacosAuthLoginConstant.ACCESSTOKEN,
                         obj.get(Constants.ACCESS_TOKEN).asText());
+                // token 到期时间
                 loginIdentityContext.setParameter(NacosAuthLoginConstant.TOKENTTL,
                         obj.get(Constants.TOKEN_TTL).asText());
             } else {

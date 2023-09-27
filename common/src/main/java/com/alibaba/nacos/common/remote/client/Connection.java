@@ -20,7 +20,7 @@ import com.alibaba.nacos.api.remote.Requester;
 
 /**
  * connection on client side.
- *
+ * 客户端的连接
  * @author liuzunfei
  * @version $Id: Connection.java, v 0.1 2020年08月09日 1:32 PM liuzunfei Exp $
  */

@@ -22,6 +22,7 @@ import java.util.Properties;
 
 /**
  * gRPC config for sdk.
+ * sdk 中 gRPC 的配置
  *
  * @author githubcheng2978
  */
@@ -34,20 +35,21 @@ public class RpcClientTlsConfig extends TlsConfig {
      */
     public static RpcClientTlsConfig properties(Properties properties) {
         RpcClientTlsConfig tlsConfig = new RpcClientTlsConfig();
+        // RPC客户端是否 TSL 验证
         if (properties.containsKey(RpcConstants.RPC_CLIENT_TLS_ENABLE)) {
             tlsConfig.setEnableTls(Boolean.parseBoolean(
                     properties.getProperty(RpcConstants.RPC_CLIENT_TLS_ENABLE)));
         }
-
+        // RPC客户端 TSL 验证提供者
         if (properties.containsKey(RpcConstants.RPC_CLIENT_TLS_PROVIDER)) {
             tlsConfig.setSslProvider(properties.getProperty(RpcConstants.RPC_CLIENT_TLS_PROVIDER));
         }
-
+        // RPC客户端 是否多重验证
         if (properties.containsKey(RpcConstants.RPC_CLIENT_MUTUAL_AUTH)) {
             tlsConfig.setMutualAuthEnable(Boolean.parseBoolean(
                     properties.getProperty(RpcConstants.RPC_CLIENT_MUTUAL_AUTH)));
         }
-
+        // RPC客户端 TLS 的协议类型
         if (properties.containsKey(RpcConstants.RPC_CLIENT_TLS_PROTOCOLS)) {
             tlsConfig.setProtocols(RpcConstants.RPC_CLIENT_TLS_PROTOCOLS);
         }

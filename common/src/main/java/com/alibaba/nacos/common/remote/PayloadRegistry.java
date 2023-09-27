@@ -25,7 +25,7 @@ import java.util.ServiceLoader;
 
 /**
  * payload registry,Define basic scan behavior request and response.
- *
+ * 有效载荷注册表，定义基本扫描行为请求和响应。
  * @author liuzunfei
  * @author hujun
  * @version $Id: PayloadRegistry.java, v 0.1 2020年09月01日 10:56 AM liuzunfei Exp $
@@ -38,6 +38,7 @@ public class PayloadRegistry {
     static boolean initialized = false;
     
     public static void init() {
+        // 扫描
         scan();
     }
     
@@ -53,6 +54,7 @@ public class PayloadRegistry {
     }
     
     static void register(String type, Class<?> clazz) {
+        // 判断是不是抽象类
         if (Modifier.isAbstract(clazz.getModifiers())) {
             return;
         }

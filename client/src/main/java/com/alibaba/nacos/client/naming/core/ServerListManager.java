@@ -68,7 +68,9 @@ public class ServerListManager implements ServerListFactory, Closeable {
     private final String namespace;
     
     private final AtomicInteger currentIndex = new AtomicInteger();
-    
+    /**
+     * 从 配置文件中 获取的服务列表
+     */
     private final List<String> serverList = new ArrayList<>();
 
     /**

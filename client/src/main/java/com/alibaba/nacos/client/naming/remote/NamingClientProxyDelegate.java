@@ -77,7 +77,9 @@ public class NamingClientProxyDelegate implements NamingClientProxy {
         this.securityProxy = new SecurityProxy(this.serverListManager.getServerList(),
                 NamingHttpClientManager.getInstance().getNacosRestTemplate());
         initSecurityProxy(properties);
+        // 创建命名服务 http 客户端代理
         this.httpClientProxy = new NamingHttpClientProxy(namespace, securityProxy, serverListManager, properties);
+        // 创建命名服务 GRPC 客户端代理
         this.grpcClientProxy = new NamingGrpcClientProxy(namespace, securityProxy, serverListManager, properties,
                 serviceInfoHolder);
     }
@@ -91,8 +93,9 @@ public class NamingClientProxyDelegate implements NamingClientProxy {
         });
         final Properties nacosClientPropertiesView = properties.asProperties();
         this.securityProxy.login(nacosClientPropertiesView);
-        this.executorService
-                .scheduleWithFixedDelay(() -> securityProxy.login(nacosClientPropertiesView), 0, SECURITY_INFO_REFRESH_INTERVAL_MILLS,
+        // 初始无延迟，每 5s 执行一次登陆
+        this.executorService.scheduleWithFixedDelay(() ->
+                        securityProxy.login(nacosClientPropertiesView), 0, SECURITY_INFO_REFRESH_INTERVAL_MILLS,
                         TimeUnit.MILLISECONDS);
     }
     

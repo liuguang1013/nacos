@@ -46,7 +46,11 @@ public class AppNameUtils {
     private static final String SERVER_UNKNOWN = "unknown server";
     
     private static final String DEFAULT_APP_NAME = "unknown";
-    
+
+    /**
+     * project.name -> 根据服务地址获取->unknown
+     * @return
+     */
     public static String getAppName() {
         String appName;
         

@@ -77,15 +77,17 @@ public class ParamUtil {
     
     static {
         // Client identity information
+        // 客户端身份信息
         appKey = NacosClientProperties.PROTOTYPE.getProperty(NACOS_CLIENT_APP_KEY, BLANK_STR);
-        
+        // 默认的 ContextPath  nacos
         defaultContextPath = NacosClientProperties.PROTOTYPE.getProperty(NACOS_CLIENT_CONTEXTPATH_KEY, DEFAULT_NACOS_CLIENT_CONTEXTPATH);
-        
+        // appName
         appName = AppNameUtils.getAppName();
-        
+        // 8848
         serverPort = NacosClientProperties.PROTOTYPE.getProperty(NACOS_SERVER_PORT_KEY, DEFAULT_SERVER_PORT);
         LOGGER.info("[settings] [req-serv] nacos-server port:{}", serverPort);
-        
+
+        // 默认的 连接超时事件
         String tmp = "1000";
         try {
             tmp = NacosClientProperties.PROTOTYPE.getProperty(NACOS_CONNECT_TIMEOUT_KEY, DEFAULT_NACOS_CONNECT_TIMEOUT);
@@ -98,7 +100,7 @@ public class ParamUtil {
         LOGGER.info("[settings] [http-client] connect timeout:{}", connectTimeout);
         
         clientVersion = VersionUtils.version;
-        
+        // 每个 任务配置的大小 默认 3000
         try {
             perTaskConfigSize = Double
                     .parseDouble(NacosClientProperties.PROTOTYPE.getProperty(PER_TASK_CONFIG_SIZE_KEY, DEFAULT_PER_TASK_CONFIG_SIZE_KEY));

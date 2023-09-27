@@ -88,12 +88,17 @@ public class NamingGrpcClientProxy extends AbstractNamingClientProxy {
             NacosClientProperties properties, ServiceInfoHolder serviceInfoHolder) throws NacosException {
         super(securityProxy);
         this.namespaceId = namespaceId;
+        // uuid 作为 clientName
         this.uuid = UUID.randomUUID().toString();
+        // 请求超时时间，默认为 -1
         this.requestTimeout = Long.parseLong(properties.getProperty(CommonParams.NAMING_REQUEST_TIMEOUT, "-1"));
+        // 标签：sdk、naming
         Map<String, String> labels = new HashMap<>();
         labels.put(RemoteConstants.LABEL_SOURCE, RemoteConstants.LABEL_SOURCE_SDK);
         labels.put(RemoteConstants.LABEL_MODULE, RemoteConstants.LABEL_MODULE_NAMING);
+        // 创建 Grpc 客户端，通过工厂类
         this.rpcClient = RpcClientFactory.createClient(uuid, ConnectionType.GRPC, labels, RpcClientTlsConfig.properties(properties.asProperties()));
+        //
         this.redoService = new NamingGrpcRedoService(this);
         start(serverListFactory, serviceInfoHolder);
     }
@@ -298,7 +303,7 @@ public class NamingGrpcClientProxy extends AbstractNamingClientProxy {
     
     /**
      * Execute subscribe operation.
-     *
+     * 执行 订阅 操作，实际上就是获取 可以访问的实例（服务提供者）
      * @param serviceName service name
      * @param groupName   group name
      * @param clusters    clusters, current only support subscribe all clusters, maybe deprecated
@@ -306,8 +311,10 @@ public class NamingGrpcClientProxy extends AbstractNamingClientProxy {
      * @throws NacosException nacos exception
      */
     public ServiceInfo doSubscribe(String serviceName, String groupName, String clusters) throws NacosException {
+        // 创建 订阅服务请求，指明：namespaceId、groupName、 serviceName、clusters
         SubscribeServiceRequest request = new SubscribeServiceRequest(namespaceId, groupName, serviceName, clusters,
                 true);
+
         SubscribeServiceResponse response = requestToServer(request, SubscribeServiceResponse.class);
         redoService.subscriberRegistered(serviceName, groupName, clusters);
         return response.getServiceInfo();
@@ -353,6 +360,7 @@ public class NamingGrpcClientProxy extends AbstractNamingClientProxy {
         try {
             request.putAllHeader(
                     getSecurityHeaders(request.getNamespace(), request.getGroupName(), request.getServiceName()));
+            // 使用 rpcClient 请求
             Response response =
                     requestTimeout < 0 ? rpcClient.request(request) : rpcClient.request(request, requestTimeout);
             if (ResponseCode.SUCCESS.getCode() != response.getResultCode()) {

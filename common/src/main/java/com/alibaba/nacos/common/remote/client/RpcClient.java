@@ -72,12 +72,17 @@ public abstract class RpcClient implements Closeable {
     private ServerListFactory serverListFactory;
     
     protected BlockingQueue<ConnectionEvent> eventLinkedBlockingQueue = new LinkedBlockingQueue<>();
-    
+
+    /**
+     * rpc 客户端状态
+     */
     protected volatile AtomicReference<RpcClientStatus> rpcClientStatus = new AtomicReference<>(
             RpcClientStatus.WAIT_INIT);
     
     protected ScheduledExecutorService clientEventExecutor;
-    
+    /**
+     * 阻塞队列：保存需要重连的信号
+     */
     private final BlockingQueue<ReconnectContext> reconnectionSignal = new ArrayBlockingQueue<>(1);
     
     protected volatile Connection currentConnection;
@@ -105,6 +110,7 @@ public abstract class RpcClient implements Closeable {
     protected final ResourceLoader resourceLoader = new DefaultResourceLoader();
 
     static {
+        // 载荷初始化，加载 Payload 接口的实现类 名称和.class 的关系
         PayloadRegistry.init();
     }
     
@@ -115,11 +121,13 @@ public abstract class RpcClient implements Closeable {
     public RpcClient(RpcClientConfig rpcClientConfig, ServerListFactory serverListFactory) {
         this.rpcClientConfig = rpcClientConfig;
         this.serverListFactory = serverListFactory;
+        // 初始化
         init();
     }
     
     protected void init() {
         if (this.serverListFactory != null) {
+            // CAS 置换 当前 rpc 客户端状态
             rpcClientStatus.compareAndSet(RpcClientStatus.WAIT_INIT, RpcClientStatus.INITIALIZED);
             LoggerUtils.printIfInfoEnabled(LOGGER, "RpcClient init in constructor, ServerListFactory = {}",
                     serverListFactory.getClass().getName());
@@ -204,7 +212,7 @@ public abstract class RpcClient implements Closeable {
     
     /**
      * check is this client is running.
-     *
+     * 检查客户端状态是不是 运行状态
      * @return is running or not.
      */
     public boolean isRunning() {
@@ -464,6 +472,7 @@ public abstract class RpcClient implements Closeable {
     }
     
     protected void switchServerAsync(final ServerInfo recommendServerInfo, boolean onRequestFail) {
+        // 向保存重连信号的 阻塞队列中添加元素
         reconnectionSignal.offer(new ReconnectContext(recommendServerInfo, onRequestFail));
     }
     
@@ -634,26 +643,33 @@ public abstract class RpcClient implements Closeable {
         Response response;
         Throwable exceptionThrow = null;
         long start = System.currentTimeMillis();
+        // 当 小于最大重试次数、并且小于 超时时间
         while (retryTimes < rpcClientConfig.retryTimes() && System.currentTimeMillis() < timeoutMills + start) {
             boolean waitReconnect = false;
             try {
+                // 当前客户端连接为空，并且不是 运行状态
                 if (this.currentConnection == null || !isRunning()) {
                     waitReconnect = true;
                     throw new NacosException(NacosException.CLIENT_DISCONNECT,
                             "Client not connected, current status:" + rpcClientStatus.get());
                 }
                 response = this.currentConnection.request(request, timeoutMills);
+                // 没有响应抛异常
                 if (response == null) {
                     throw new NacosException(SERVER_ERROR, "Unknown Exception.");
                 }
+                // 错误响应
                 if (response instanceof ErrorResponse) {
+                    // 错误类型：连接没有注册，说明 rpc 连接不健康，服务端此时已经把当前客户端连接移除了
                     if (response.getErrorCode() == NacosException.UN_REGISTER) {
                         synchronized (this) {
                             waitReconnect = true;
+                            // 将 当前客户端状态置为 不健康状态
                             if (rpcClientStatus.compareAndSet(RpcClientStatus.RUNNING, RpcClientStatus.UNHEALTHY)) {
                                 LoggerUtils.printIfErrorEnabled(LOGGER,
                                         "Connection is unregistered, switch server, connectionId = {}, request = {}",
                                         currentConnection.getConnectionId(), request.getClass().getSimpleName());
+                                // 异步的转换另一服务端，进行连接
                                 switchServerAsync();
                             }
                         }
@@ -662,6 +678,7 @@ public abstract class RpcClient implements Closeable {
                     throw new NacosException(response.getErrorCode(), response.getMessage());
                 }
                 // return response.
+                // 记录调用成功时间
                 lastActiveTimeStamp = System.currentTimeMillis();
                 return response;
                 

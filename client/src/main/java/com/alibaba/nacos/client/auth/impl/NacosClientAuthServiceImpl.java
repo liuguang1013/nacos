@@ -76,12 +76,12 @@ public class NacosClientAuthServiceImpl extends AbstractClientAuthService {
                     .toMillis(tokenTtl - tokenRefreshWindow)) {
                 return true;
             }
-            
+            // 初始化上次刷新事件
             if (StringUtils.isBlank(properties.getProperty(PropertyKeyConst.USERNAME))) {
                 lastRefreshTime = System.currentTimeMillis();
                 return true;
             }
-            
+            // 遍历服务端列表，通过 http 登陆处理器，进行验证
             for (String server : this.serverList) {
                 HttpLoginProcessor httpLoginProcessor = new HttpLoginProcessor(nacosRestTemplate);
                 properties.setProperty(NacosAuthLoginConstant.SERVER, server);
