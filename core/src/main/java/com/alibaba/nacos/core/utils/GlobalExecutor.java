@@ -41,13 +41,19 @@ public class GlobalExecutor {
     private static final ScheduledExecutorService DISTRO_EXECUTOR = ExecutorFactory.Managed
             .newScheduledExecutorService(ClassUtils.getCanonicalName(GlobalExecutor.class),
                     EnvUtil.getAvailableProcessors(2), new NameThreadFactory("com.alibaba.nacos.core.protocal.distro"));
-    
+
+    /**
+     * sdk 下 Rpc 连接池
+     */
     public static final ThreadPoolExecutor sdkRpcExecutor = new ThreadPoolExecutor(
             EnvUtil.getAvailableProcessors(RemoteUtils.getRemoteExecutorTimesOfProcessors()),
             EnvUtil.getAvailableProcessors(RemoteUtils.getRemoteExecutorTimesOfProcessors()), 60L, TimeUnit.SECONDS,
             new LinkedBlockingQueue<>(RemoteUtils.getRemoteExecutorQueueSize()),
             new ThreadFactoryBuilder().daemon(true).nameFormat("nacos-grpc-executor-%d").build());
-    
+
+    /**
+     * 集群下 Rpc 连接池
+     */
     public static final ThreadPoolExecutor clusterRpcExecutor = new ThreadPoolExecutor(
             EnvUtil.getAvailableProcessors(RemoteUtils.getRemoteExecutorTimesOfProcessors()),
             EnvUtil.getAvailableProcessors(RemoteUtils.getRemoteExecutorTimesOfProcessors()), 60L, TimeUnit.SECONDS,

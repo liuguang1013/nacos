@@ -66,7 +66,11 @@ public class NacosAuthPluginService implements AuthPluginService {
         // enable all of action and type
         return true;
     }
-    
+
+    /**
+     * 认证身份：在 grpc 服务端接收到客户端请求时，先经过过滤器，执行该方法进行 token 验证
+     * itodo： 插件地方待验证
+     */
     @Override
     public boolean validateIdentity(IdentityContext identityContext, Resource resource) throws AccessException {
         checkNacosAuthManager();

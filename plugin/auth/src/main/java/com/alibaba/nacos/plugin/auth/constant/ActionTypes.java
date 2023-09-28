@@ -18,7 +18,7 @@ package com.alibaba.nacos.plugin.auth.constant;
 
 /**
  * Resource action type definitions.
- *
+ * 资源操作类型定义。
  * @author nkorange
  * @author mai.jh
  * @since 1.2.0
@@ -26,10 +26,12 @@ package com.alibaba.nacos.plugin.auth.constant;
 public enum ActionTypes {
     /**
      * Read.
+     * 读
      */
     READ("r"),
     /**
      * Write.
+     * 写
      */
     WRITE("w");
     

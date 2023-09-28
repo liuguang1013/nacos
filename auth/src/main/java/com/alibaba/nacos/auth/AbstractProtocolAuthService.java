@@ -47,8 +47,10 @@ public abstract class AbstractProtocolAuthService<R> implements ProtocolAuthServ
     
     @Override
     public boolean enableAuth(Secured secured) {
+        // 在 服务端认证插件服务中，查找对应的类型
         Optional<AuthPluginService> authPluginService = AuthPluginManager.getInstance()
                 .findAuthServiceSpiImpl(authConfigs.getNacosAuthSystemType());
+        // 如果存在，进行验证
         if (authPluginService.isPresent()) {
             return authPluginService.get().enableAuth(secured.action(), secured.signType());
         }
@@ -56,11 +58,16 @@ public abstract class AbstractProtocolAuthService<R> implements ProtocolAuthServ
                 authConfigs.getNacosAuthSystemType(), Constants.Auth.NACOS_CORE_AUTH_ENABLED);
         return false;
     }
-    
+
+    /**
+     * 验证身份
+     */
     @Override
     public boolean validateIdentity(IdentityContext identityContext, Resource resource) throws AccessException {
+        // 在认证插件管理中心 查找对应的插件服务
         Optional<AuthPluginService> authPluginService = AuthPluginManager.getInstance()
                 .findAuthServiceSpiImpl(authConfigs.getNacosAuthSystemType());
+        // 存在进行验证
         if (authPluginService.isPresent()) {
             return authPluginService.get().validateIdentity(identityContext, resource);
         }

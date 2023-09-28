@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Grpc config.
- *
+ * Grpc 配置文件
  * @author githubcheng2978.
  */
 

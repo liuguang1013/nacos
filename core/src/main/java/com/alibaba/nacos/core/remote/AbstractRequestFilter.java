@@ -29,7 +29,9 @@ import java.lang.reflect.Type;
 
 /**
  * interceptor fo request.
- *
+ * Grpc 请求拦截器
+ * 有两个实现类 TpsControlRequestFilter、RemoteRequestAuthFilter
+ * 创建两个实现类的时候，就会注册到 RequestFilters 请求过滤器中
  * @author liuzunfei
  * @version $Id: AbstractRequestFilter.java, v 0.1 2020年09月14日 11:46 AM liuzunfei Exp $
  */
@@ -43,6 +45,7 @@ public abstract class AbstractRequestFilter {
     
     @PostConstruct
     public void init() {
+        // 注册到 RequestFilters 请求过滤器中
         requestFilters.registerFilter(this);
     }
     

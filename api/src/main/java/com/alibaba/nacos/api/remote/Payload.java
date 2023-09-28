@@ -18,7 +18,8 @@ package com.alibaba.nacos.api.remote;
 
 /**
  * payload class sign.
- *
+ * 有效载荷 class 标志。
+ * 主要是 标识 GRPC 中的请求和响应
  * @author hujun
  */
 public interface Payload {

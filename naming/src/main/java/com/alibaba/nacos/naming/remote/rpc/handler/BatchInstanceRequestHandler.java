@@ -30,6 +30,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * The client registers multiple service instance request.
+ * 客户端注册多个服务实例的请求。
  *
  * @author <a href="mailto:chenhao26@xiaomi.com">chenhao26</a>
  */
@@ -47,6 +48,7 @@ public class BatchInstanceRequestHandler extends RequestHandler<BatchInstanceReq
     public BatchInstanceResponse handle(BatchInstanceRequest request, RequestMeta meta) throws NacosException {
         Service service = Service.newService(request.getNamespace(), request.getGroupName(), request.getServiceName(),
                 true);
+
         switch (request.getType()) {
             case NamingRemoteConstants.BATCH_REGISTER_INSTANCE:
                 return batchRegisterInstance(service, request, meta);

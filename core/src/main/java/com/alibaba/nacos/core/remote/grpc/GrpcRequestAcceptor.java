@@ -55,6 +55,7 @@ public class GrpcRequestAcceptor extends RequestGrpc.RequestImplBase {
         String clientIp = grpcRequest.getMetadata().getClientIp();
         String connectionId = GrpcServerConstants.CONTEXT_KEY_CONN_ID.get();
         try {
+            // 如果追踪，进行 日志 输出
             if (connectionManager.traced(clientIp)) {
                 Loggers.REMOTE_DIGEST.info("[{}]Payload {},meta={},body={}", connectionId, receive ? "receive" : "send",
                         grpcRequest.getMetadata().toByteString().toStringUtf8(),
@@ -66,25 +67,33 @@ public class GrpcRequestAcceptor extends RequestGrpc.RequestImplBase {
         }
         
     }
-    
+
+    /**
+     * 接收
+     * @param grpcRequest
+     * @param responseObserver
+     */
     @Override
     public void request(Payload grpcRequest, StreamObserver<Payload> responseObserver) {
-        
+        // 如果有必要 进行 追踪
         traceIfNecessary(grpcRequest, true);
         String type = grpcRequest.getMetadata().getType();
         
         //server is on starting.
+        //
         if (!ApplicationUtils.isStarted()) {
             Payload payloadResponse = GrpcUtils.convert(
                     ErrorResponse.build(NacosException.INVALID_SERVER_STATUS, "Server is starting,please try later."));
             traceIfNecessary(payloadResponse, false);
+            // 返回消息
             responseObserver.onNext(payloadResponse);
-            
+            // 结束连接
             responseObserver.onCompleted();
             return;
         }
         
         // server check.
+        // 服务端检查请求
         if (ServerCheckRequest.class.getSimpleName().equals(type)) {
             Payload serverCheckResponseP = GrpcUtils.convert(new ServerCheckResponse(GrpcServerConstants.CONTEXT_KEY_CONN_ID.get()));
             traceIfNecessary(serverCheckResponseP, false);
@@ -92,9 +101,11 @@ public class GrpcRequestAcceptor extends RequestGrpc.RequestImplBase {
             responseObserver.onCompleted();
             return;
         }
-        
+        // 查找请求的对应的处理器
         RequestHandler requestHandler = requestHandlerRegistry.getByRequestType(type);
+
         //no handler found.
+        // 没有处理器
         if (requestHandler == null) {
             Loggers.REMOTE_DIGEST.warn(String.format("[%s] No handler for request type : %s :", "grpc", type));
             Payload payloadResponse = GrpcUtils
@@ -106,8 +117,10 @@ public class GrpcRequestAcceptor extends RequestGrpc.RequestImplBase {
         }
         
         //check connection status.
+        // 检查连接状态
         String connectionId = GrpcServerConstants.CONTEXT_KEY_CONN_ID.get();
         boolean requestValid = connectionManager.checkValid(connectionId);
+        // 判断连接 是否注册
         if (!requestValid) {
             Loggers.REMOTE_DIGEST
                     .warn("[{}] Invalid connection Id ,connection [{}] is un registered ,", "grpc", connectionId);
@@ -118,9 +131,11 @@ public class GrpcRequestAcceptor extends RequestGrpc.RequestImplBase {
             responseObserver.onCompleted();
             return;
         }
-        
+
+        // 请求对象转化失败，直接返回
         Object parseObj = null;
         try {
+            // 将 Payload 转化为 请求对象
             parseObj = GrpcUtils.parse(grpcRequest);
         } catch (Exception e) {
             Loggers.REMOTE_DIGEST
@@ -131,7 +146,7 @@ public class GrpcRequestAcceptor extends RequestGrpc.RequestImplBase {
             responseObserver.onCompleted();
             return;
         }
-        
+        // 请求对象为空，直接返回
         if (parseObj == null) {
             Loggers.REMOTE_DIGEST.warn("[{}] Invalid request receive  ,parse request is null", connectionId);
             Payload payloadResponse = GrpcUtils
@@ -141,7 +156,7 @@ public class GrpcRequestAcceptor extends RequestGrpc.RequestImplBase {
             responseObserver.onCompleted();
             return;
         }
-        
+        // 对象不是 Request 类型，直接返回
         if (!(parseObj instanceof Request)) {
             Loggers.REMOTE_DIGEST
                     .warn("[{}] Invalid request receive  ,parsed payload is not a request,parseObj={}", connectionId,
@@ -156,13 +171,17 @@ public class GrpcRequestAcceptor extends RequestGrpc.RequestImplBase {
         
         Request request = (Request) parseObj;
         try {
+            // 获取连接对象
             Connection connection = connectionManager.getConnection(GrpcServerConstants.CONTEXT_KEY_CONN_ID.get());
+            // 请求元数据：客户端ip、连接id、连接版本、标签
             RequestMeta requestMeta = new RequestMeta();
             requestMeta.setClientIp(connection.getMetaInfo().getClientIp());
             requestMeta.setConnectionId(GrpcServerConstants.CONTEXT_KEY_CONN_ID.get());
             requestMeta.setClientVersion(connection.getMetaInfo().getVersion());
             requestMeta.setLabels(connection.getMetaInfo().getLabels());
+            // 刷新时间
             connectionManager.refreshActiveTime(requestMeta.getConnectionId());
+            // 处理请求
             Response response = requestHandler.handleRequest(request, requestMeta);
             Payload payloadResponse = GrpcUtils.convert(response);
             traceIfNecessary(payloadResponse, false);

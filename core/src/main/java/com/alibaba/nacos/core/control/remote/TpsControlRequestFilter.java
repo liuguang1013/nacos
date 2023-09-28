@@ -44,7 +44,10 @@ import java.lang.reflect.Method;
 public class TpsControlRequestFilter extends AbstractRequestFilter {
     
     TpsControlManager tpsControlManager = ControlManagerCenter.getInstance().getTpsControlManager();
-    
+
+    /**
+     * itodo： 待看
+     */
     @Override
     protected Response filter(Request request, RequestMeta meta, Class handlerClazz) {
         

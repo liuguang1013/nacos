@@ -29,7 +29,7 @@ import io.grpc.netty.shaded.io.netty.channel.Channel;
 
 /**
  * GrpcConnectionInterceptor set connection.
- *
+ * 设置 Grpc 连接拦截器
  * @author Weizhan▪Yun
  * @date 2023/1/5 16:05
  */

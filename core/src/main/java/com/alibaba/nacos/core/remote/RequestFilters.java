@@ -23,7 +23,7 @@ import java.util.List;
 
 /**
  * filters of request.
- *
+ * 请求过滤器
  * @author liuzunfei
  * @version $Id: RequestFilters.java, v 0.1 2020年09月14日 12:00 PM liuzunfei Exp $
  */
@@ -31,7 +31,10 @@ import java.util.List;
 public class RequestFilters {
     
     List<AbstractRequestFilter> filters = new ArrayList<>();
-    
+
+    /**
+     * 在 过滤器对象 实现类 创建时候。AbstractRequestFilter 调用该方法
+     */
     public void registerFilter(AbstractRequestFilter requestFilter) {
         filters.add(requestFilter);
     }

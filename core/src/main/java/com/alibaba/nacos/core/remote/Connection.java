@@ -33,7 +33,10 @@ public abstract class Connection implements Requester {
     private boolean traced = false;
     
     private ClientAbilities abilities;
-    
+
+    /**
+     * 连接元信息：IP、port等信息
+     */
     private final ConnectionMeta metaInfo;
     
     public Connection(ConnectionMeta metaInfo) {
@@ -79,6 +82,7 @@ public abstract class Connection implements Requester {
     
     /**
      * Update last Active Time to now.
+     * 刷新最近访问事件
      */
     public void freshActiveTime() {
         metaInfo.setLastActiveTime(System.currentTimeMillis());

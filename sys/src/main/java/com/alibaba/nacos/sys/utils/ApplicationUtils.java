@@ -37,7 +37,9 @@ import java.util.function.Consumer;
 
 /**
  * Nacos global tool class.
- *
+ * nacos 全局工具类
+ * springboot 启动时候会扫描 ApplicationContextInitializer 执行 initialize 方法
+ * 将 容器添加到 工具类中
  * @author <a href="mailto:liaochuntao@live.com">liaochuntao</a>
  */
 @SuppressWarnings("all")

@@ -40,14 +40,18 @@ public class AuthPluginManager {
     
     /**
      * The relationship of context type and {@link AuthPluginService}.
+     * 缓存 AuthPluginService 实现类
+     * key： 类名
      */
     private final Map<String, AuthPluginService> authServiceMap = new HashMap<>();
     
     private AuthPluginManager() {
+        // 初始化认证服务
         initAuthServices();
     }
     
     private void initAuthServices() {
+        // 加载 AuthPluginService 接口实现类
         Collection<AuthPluginService> authPluginServices = NacosServiceLoader.load(AuthPluginService.class);
         for (AuthPluginService each : authPluginServices) {
             if (StringUtils.isEmpty(each.getAuthServiceName())) {

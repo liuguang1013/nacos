@@ -26,7 +26,7 @@ import static com.alibaba.nacos.api.common.Constants.VIPSERVER_TAG;
 
 /**
  * ConnectionMetaInfo.
- *
+ *  连接元信息
  * @author liuzunfei
  * @version $Id: ConnectionMetaInfo.java, v 0.1 2020年07月13日 7:28 PM liuzunfei Exp $
  */

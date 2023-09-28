@@ -653,6 +653,7 @@ public abstract class RpcClient implements Closeable {
                     throw new NacosException(NacosException.CLIENT_DISCONNECT,
                             "Client not connected, current status:" + rpcClientStatus.get());
                 }
+                // 通过 GrpcConnection 访问 com.alibaba.nacos.core.remote.grpc 包下 的 GrpcRequestAcceptor
                 response = this.currentConnection.request(request, timeoutMills);
                 // 没有响应抛异常
                 if (response == null) {

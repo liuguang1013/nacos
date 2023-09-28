@@ -18,7 +18,8 @@ package com.alibaba.nacos.api.naming.remote;
 
 /**
  * Retain all naming module request type constants.
- *
+ * 包含所有 命名服务请求类型 常量
+ * 在 grpc 服务端，查找 handler 的时候，会根据常量判断
  * @author liuzunfei
  * @author xiweng.yy
  */

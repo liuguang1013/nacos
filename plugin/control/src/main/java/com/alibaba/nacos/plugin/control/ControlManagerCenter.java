@@ -33,7 +33,7 @@ import java.util.Collection;
 
 /**
  * control manager center.
- *
+ * 控制管理中心。
  * @author shiyiyue
  */
 public class ControlManagerCenter {
@@ -86,7 +86,10 @@ public class ControlManagerCenter {
         }
         
     }
-    
+
+    /**
+     * itodo：插件部分待看
+     */
     private ControlManagerCenter() {
         initTpsControlManager();
         initConnectionManager();

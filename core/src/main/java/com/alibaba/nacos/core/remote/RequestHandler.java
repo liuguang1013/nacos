@@ -47,6 +47,7 @@ public abstract class RequestHandler<T extends Request, S extends Response> {
         for (AbstractRequestFilter filter : requestFilters.filters) {
             try {
                 Response filterResult = filter.filter(request, meta, this.getClass());
+                // 过滤器执行失败，直接返回响应
                 if (filterResult != null && !filterResult.isSuccess()) {
                     return filterResult;
                 }
@@ -55,6 +56,7 @@ public abstract class RequestHandler<T extends Request, S extends Response> {
             }
             
         }
+        // 进入具体的 请求处理器实现类
         return handle(request, meta);
     }
     

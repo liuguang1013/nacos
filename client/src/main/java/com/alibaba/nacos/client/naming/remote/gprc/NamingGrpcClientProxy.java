@@ -195,8 +195,10 @@ public class NamingGrpcClientProxy extends AbstractNamingClientProxy {
      */
     public void doBatchRegisterService(String serviceName, String groupName, List<Instance> instances)
             throws NacosException {
+        // 创建 批量实例 重连请求
         BatchInstanceRequest request = new BatchInstanceRequest(namespaceId, serviceName, groupName,
                 NamingRemoteConstants.BATCH_REGISTER_INSTANCE, instances);
+        // 请求服务端
         requestToServer(request, BatchInstanceResponse.class);
         redoService.instanceRegistered(serviceName, groupName);
     }
@@ -358,6 +360,7 @@ public class NamingGrpcClientProxy extends AbstractNamingClientProxy {
     private <T extends Response> T requestToServer(AbstractNamingRequest request, Class<T> responseClass)
             throws NacosException {
         try {
+            // 构建请求头：添加各个认证插件的 token
             request.putAllHeader(
                     getSecurityHeaders(request.getNamespace(), request.getGroupName(), request.getServiceName()));
             // 使用 rpcClient 请求

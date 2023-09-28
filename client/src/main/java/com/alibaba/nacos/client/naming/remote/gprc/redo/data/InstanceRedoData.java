@@ -20,7 +20,8 @@ import com.alibaba.nacos.api.naming.pojo.Instance;
 
 /**
  * Redo data for register service instance.
- *
+ * 注册服务中的 重连数据
+ * itodo：这个应该是服务提供者，但是这个应该是直接对服务实例，还是对注册中心？
  * @author xiweng.yy
  */
 public class InstanceRedoData extends RedoData<Instance> {

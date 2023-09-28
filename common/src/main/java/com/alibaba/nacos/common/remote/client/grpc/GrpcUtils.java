@@ -37,7 +37,9 @@ import java.util.Map;
 
 /**
  * gRPC utils, use to parse request and response.
- *
+ * GRPC 定义数据格式 nacos_grpc_service.proto
+ * 文件中定义了，请求和响应都是 Payload ，请求方式有两种：简单的请求、两端流式请求
+ * 需要一个转换类 进行转换
  * @author liuzunfei
  * @version $Id: GrpcUtils.java, v 0.1 2020年08月09日 1:43 PM liuzunfei Exp $
  */
@@ -75,10 +77,10 @@ public class GrpcUtils {
      * @return payload.
      */
     public static Payload convert(Request request) {
-        
+        // 构建元数据：请求类名、IP、请求头
         Metadata newMeta = Metadata.newBuilder().setType(request.getClass().getSimpleName())
                 .setClientIp(NetUtils.localIP()).putAllHeaders(request.getHeaders()).build();
-        
+        // 对象转换为 json字节数组
         byte[] jsonBytes = convertRequestToByte(request);
         
         Payload.Builder builder = Payload.newBuilder();
@@ -105,6 +107,7 @@ public class GrpcUtils {
     }
     
     private static byte[] convertRequestToByte(Request request) {
+        // 暂存 header
         Map<String, String> requestHeaders = new HashMap<>(request.getHeaders());
         request.clearHeaders();
         byte[] jsonBytes = JacksonUtils.toJsonBytes(request);

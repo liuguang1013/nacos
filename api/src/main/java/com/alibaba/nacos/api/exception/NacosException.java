@@ -165,6 +165,7 @@ public class NacosException extends Exception {
     
     /**
      * Server is not started.
+     * 服务端未启动状态
      */
     public static final int INVALID_SERVER_STATUS = 300;
     

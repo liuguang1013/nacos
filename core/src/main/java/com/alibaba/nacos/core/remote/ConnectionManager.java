@@ -229,6 +229,7 @@ public class ConnectionManager {
     
     /**
      * regresh connection active time.
+     * itodo:发现注解有问题： regresh->refresh
      *
      * @param connectionId connectionId.
      */
@@ -241,6 +242,7 @@ public class ConnectionManager {
     
     /**
      * Start Task：Expel the connection which active Time expire.
+     * itodo：待看
      */
     @PostConstruct
     public void start() {

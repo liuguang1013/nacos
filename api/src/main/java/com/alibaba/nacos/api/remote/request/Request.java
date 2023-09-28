@@ -22,7 +22,12 @@ import java.util.TreeMap;
 
 /**
  * Request.
- *
+ * 请求分为：
+ *      配置相关的请求
+ *      命名相关的请求
+ *      集群相关的请求
+ *      内部请求
+ *      服务端请求
  * @author liuzunfei
  */
 @SuppressWarnings("PMD.AbstractClassShouldStartWithAbstractNamingRule")

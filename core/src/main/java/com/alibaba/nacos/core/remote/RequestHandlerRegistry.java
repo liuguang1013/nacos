@@ -33,14 +33,17 @@ import java.util.Map;
 
 /**
  * RequestHandlerRegistry.
- *
+ *  请求处理器注册  监听 SpringBoot 启动中的 容器刷新事件
  * @author liuzunfei
  * @version $Id: RequestHandlerRegistry.java, v 0.1 2020年07月13日 8:24 PM liuzunfei Exp $
  */
 
 @Service
 public class RequestHandlerRegistry implements ApplicationListener<ContextRefreshedEvent> {
-    
+
+    /**
+     * 缓存 各类请求的处理器
+     */
     Map<String, RequestHandler> registryHandlers = new HashMap<>();
     
     /**
@@ -55,13 +58,16 @@ public class RequestHandlerRegistry implements ApplicationListener<ContextRefres
     
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
+        // 获取请求处理器的实现类， 根据类名很容易识别出作用
         Map<String, RequestHandler> beansOfType = event.getApplicationContext().getBeansOfType(RequestHandler.class);
         Collection<RequestHandler> values = beansOfType.values();
         for (RequestHandler requestHandler : values) {
             
             Class<?> clazz = requestHandler.getClass();
             boolean skip = false;
+            // 查找类的 父类，直到父类是 RequestHandler.class 为止
             while (!clazz.getSuperclass().equals(RequestHandler.class)) {
+                // 不是 RequestHandler 的子类
                 if (clazz.getSuperclass().equals(Object.class)) {
                     skip = true;
                     break;
@@ -73,7 +79,9 @@ public class RequestHandlerRegistry implements ApplicationListener<ContextRefres
             }
             
             try {
+                // 反射获取方法
                 Method method = clazz.getMethod("handle", Request.class, RequestMeta.class);
+                // 存在 @TpsControl注解，并且是开启 tps 监控
                 if (method.isAnnotationPresent(TpsControl.class) && TpsControlConfig.isTpsControlEnabled()) {
                     TpsControl tpsControl = method.getAnnotation(TpsControl.class);
                     String pointName = tpsControl.pointName();
@@ -83,6 +91,7 @@ public class RequestHandlerRegistry implements ApplicationListener<ContextRefres
                 //ignore.
             }
             Class tClass = (Class) ((ParameterizedType) clazz.getGenericSuperclass()).getActualTypeArguments()[0];
+            // 向缓存中添加，某类的请求的 处理器
             registryHandlers.putIfAbsent(tClass.getSimpleName(), requestHandler);
         }
     }

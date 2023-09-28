@@ -45,11 +45,13 @@ public class TlsConfig {
 
     /**
      * private key.
+     * 证书的 私钥
      */
     private String certPrivateKey;
 
     /**
      * certificate file.
+     * 证书文件
      */
     private String certChainFile;
 

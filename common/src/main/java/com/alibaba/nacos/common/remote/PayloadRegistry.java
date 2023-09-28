@@ -46,6 +46,7 @@ public class PayloadRegistry {
         if (initialized) {
             return;
         }
+        // 加载 实现 Payload 接口的实现类
         ServiceLoader<Payload> payloads = ServiceLoader.load(Payload.class);
         for (Payload payload : payloads) {
             register(payload.getClass().getSimpleName(), payload.getClass());
@@ -58,6 +59,7 @@ public class PayloadRegistry {
         if (Modifier.isAbstract(clazz.getModifiers())) {
             return;
         }
+        // 判断是否已经加载过，防止类重复加载
         if (REGISTRY_REQUEST.containsKey(type)) {
             throw new RuntimeException(String.format("Fail to register, type:%s ,clazz:%s ", type, clazz.getName()));
         }

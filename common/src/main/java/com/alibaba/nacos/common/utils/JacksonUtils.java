@@ -70,7 +70,7 @@ public final class JacksonUtils {
     
     /**
      * Object to json string byte array.
-     *
+     * 将对象转换为 json 字符串类型的字节数组
      * @param obj obj
      * @return json string byte array
      * @throws NacosSerializationException if transfer failed

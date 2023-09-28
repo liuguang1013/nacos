@@ -36,6 +36,7 @@ import javax.annotation.PreDestroy;
 public abstract class BaseRpcServer {
 
     static {
+        // 加载 Payload 接口的实现类
         PayloadRegistry.init();
     }
 
@@ -52,13 +53,15 @@ public abstract class BaseRpcServer {
      */
     @PostConstruct
     public void start() throws Exception {
+        //获取实现类名：
         String serverName = getClass().getSimpleName();
         String tlsConfig = JacksonUtils.toJson(grpcServerConfig);
         Loggers.REMOTE.info("Nacos {} Rpc server starting at port {} and tls config:{}", serverName, getServicePort(), tlsConfig);
-        
+        // 启动 grpc 服务端
         startServer();
     
         Loggers.REMOTE.info("Nacos {} Rpc server started at port {} and tls config:{}", serverName, getServicePort(), tlsConfig);
+        // 关闭的添加钩子函数
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             Loggers.REMOTE.info("Nacos {} Rpc server stopping", serverName);
             try {

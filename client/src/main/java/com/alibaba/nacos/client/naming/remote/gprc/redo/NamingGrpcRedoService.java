@@ -55,7 +55,7 @@ public class NamingGrpcRedoService implements ConnectionEventListener {
     private static final long DEFAULT_REDO_DELAY = 3000L;
 
     /**
-     * 已注册的实例 数据
+     * 已注册的实例 数据，实际就是 提供的服务
      */
     private final ConcurrentMap<String, InstanceRedoData> registeredInstances = new ConcurrentHashMap<>();
     

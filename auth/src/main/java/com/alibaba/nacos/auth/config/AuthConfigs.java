@@ -40,7 +40,8 @@ import java.util.Properties;
 
 /**
  * Auth related configurations.
- *
+ * 认证相关的配置文件
+ * 在grpc 请求的时候，判断是否开启 权限认证开关配置
  * @author nkorange
  * @author mai.jh
  * @since 1.2.0
@@ -136,7 +137,7 @@ public class AuthConfigs extends Subscriber<ServerConfigChangeEvent> {
     
     /**
      * auth function is open.
-     *
+     * 默认关闭
      * @return auth function is open
      */
     public boolean isAuthEnabled() {

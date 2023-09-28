@@ -50,6 +50,7 @@ public class GrpcConnection extends Connection {
     
     /**
      * grpc channel.
+     * grpc 原生 channel
      */
     protected ManagedChannel channel;
     
@@ -69,7 +70,10 @@ public class GrpcConnection extends Connection {
     
     @Override
     public Response request(Request request, long timeouts) throws NacosException {
+        // 将 request 请求对象 转换为  GRPC 请求 Payload
         Payload grpcRequest = GrpcUtils.convert(request);
+        // 简单的请求方式 ： 这里直接会使用 proto 文件生成的类去调用
+        // itodo： 服务端响应的逻辑在哪里？解答:com.alibaba.nacos.core.remote.grpc.GrpcCommonRequestAcceptor 处理普通请求
         ListenableFuture<Payload> requestFuture = grpcFutureServiceStub.request(grpcRequest);
         Payload grpcResponse;
         try {
@@ -77,7 +81,7 @@ public class GrpcConnection extends Connection {
         } catch (Exception e) {
             throw new NacosException(NacosException.SERVER_ERROR, e);
         }
-    
+        // 将响应 Payload 转化 为 Response 对象
         return (Response) GrpcUtils.parse(grpcResponse);
     }
     

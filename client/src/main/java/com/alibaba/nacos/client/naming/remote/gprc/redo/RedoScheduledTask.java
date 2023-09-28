@@ -107,8 +107,10 @@ public class RedoScheduledTask extends AbstractExecuteTask {
     }
     
     private void processRegisterRedoType(InstanceRedoData redoData, String serviceName, String groupName) throws NacosException {
+        // 判断是否是 批量类型的 重连数据
         if (redoData instanceof BatchInstanceRedoData) {
             // Execute Batch Register
+            // 执行批量注册
             BatchInstanceRedoData batchInstanceRedoData = (BatchInstanceRedoData) redoData;
             clientProxy.doBatchRegisterService(serviceName, groupName, batchInstanceRedoData.getInstances());
             return;
