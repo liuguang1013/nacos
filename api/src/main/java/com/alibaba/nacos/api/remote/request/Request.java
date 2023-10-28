@@ -27,6 +27,9 @@ import java.util.TreeMap;
  *      命名相关的请求
  *      集群相关的请求
  *      内部请求
+ *          健康检查请求
+ *          serverCheckRequest 服务端连接检查请求
+ *          ConnectionSetupRequest 设置请求 声明客户度的能力
  *      服务端请求
  * @author liuzunfei
  */

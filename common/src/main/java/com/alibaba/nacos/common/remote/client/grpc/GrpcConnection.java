@@ -42,7 +42,7 @@ import java.util.concurrent.TimeoutException;
 
 /**
  * gRPC connection.
- *
+ * grpc 连接对象，所有 grpc 请求都是通过 连接 发送
  * @author liuzunfei
  * @version $Id: GrpcConnection.java, v 0.1 2020年08月09日 1:36 PM liuzunfei Exp $
  */
@@ -77,6 +77,7 @@ public class GrpcConnection extends Connection {
         ListenableFuture<Payload> requestFuture = grpcFutureServiceStub.request(grpcRequest);
         Payload grpcResponse;
         try {
+            // 获取响应，连接超时
             grpcResponse = requestFuture.get(timeouts, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
             throw new NacosException(NacosException.SERVER_ERROR, e);
@@ -118,12 +119,16 @@ public class GrpcConnection extends Connection {
             }
         };
     }
-    
+
     public void sendResponse(Response response) {
         Payload convert = GrpcUtils.convert(response);
         payloadStreamObserver.onNext(convert);
     }
-    
+
+    /**
+     * 发送流式
+     * @param request
+     */
     public void sendRequest(Request request) {
         Payload convert = GrpcUtils.convert(request);
         payloadStreamObserver.onNext(convert);

@@ -149,7 +149,7 @@ public class FailoverReactor implements Closeable {
     }
 
     /**
-     * 切换刷新器
+     * 开关刷新器：
      */
     class SwitchRefresher implements Runnable {
         

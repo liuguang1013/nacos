@@ -98,16 +98,22 @@ public class NamingGrpcClientProxy extends AbstractNamingClientProxy {
         labels.put(RemoteConstants.LABEL_MODULE, RemoteConstants.LABEL_MODULE_NAMING);
         // 创建 Grpc 客户端，通过工厂类
         this.rpcClient = RpcClientFactory.createClient(uuid, ConnectionType.GRPC, labels, RpcClientTlsConfig.properties(properties.asProperties()));
-        //
+        // 重连服务：定时的 重连实例、重新订阅
         this.redoService = new NamingGrpcRedoService(this);
+        // 开启 grpc 连接
         start(serverListFactory, serviceInfoHolder);
     }
     
     private void start(ServerListFactory serverListFactory, ServiceInfoHolder serviceInfoHolder) throws NacosException {
+        // CAS 置换 Grpc 客户端状态为 INITIALIZED
         rpcClient.serverListFactory(serverListFactory);
+        // 注册连接状态监听器：当连接状态改变的时候，会调用 重连服务
         rpcClient.registerConnectionListener(redoService);
+        // 注册服务端请求处理器：处理服务端推送信息
         rpcClient.registerServerRequestHandler(new NamingPushRequestHandler(serviceInfoHolder));
+        // 开启客户端
         rpcClient.start();
+        // 消息中心注册 ServerListChangedEvent 订阅者
         NotifyCenter.registerSubscriber(this);
     }
     

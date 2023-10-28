@@ -25,7 +25,7 @@ import com.alibaba.nacos.common.remote.client.ServerRequestHandler;
 
 /**
  * Naming push request handler.
- *
+ * 处理 NotifySubscriberRequest 通知订阅请求
  * @author xiweng.yy
  */
 public class NamingPushRequestHandler implements ServerRequestHandler {
@@ -40,6 +40,7 @@ public class NamingPushRequestHandler implements ServerRequestHandler {
     public Response requestReply(Request request) {
         if (request instanceof NotifySubscriberRequest) {
             NotifySubscriberRequest notifyRequest = (NotifySubscriberRequest) request;
+            // 处理服务端请求信息
             serviceInfoHolder.processServiceInfo(notifyRequest.getServiceInfo());
             return new NotifySubscriberResponse();
         }

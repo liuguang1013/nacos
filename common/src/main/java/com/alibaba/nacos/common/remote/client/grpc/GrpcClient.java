@@ -142,12 +142,14 @@ public abstract class GrpcClient extends RpcClient {
 
     protected ThreadPoolExecutor createGrpcExecutor(String serverIp) {
         // Thread name will use String.format, ipv6 maybe contain special word %, so handle it first.
+        // 线程名将使用String。格式，ipv6可能包含特殊字%，所以先处理它。
         serverIp = serverIp.replaceAll("%", "-");
         ThreadPoolExecutor grpcExecutor = new ThreadPoolExecutor(clientConfig.threadPoolCoreSize(),
                 clientConfig.threadPoolMaxSize(), clientConfig.threadPoolKeepAlive(), TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(clientConfig.threadPoolQueueSize()),
                 new ThreadFactoryBuilder().daemon(true).nameFormat("nacos-grpc-client-executor-" + serverIp + "-%d")
                         .build());
+        // itodo： 线程池这个参数作用？
         grpcExecutor.allowCoreThreadTimeOut(true);
         return grpcExecutor;
     }
@@ -163,7 +165,8 @@ public abstract class GrpcClient extends RpcClient {
 
     /**
      * Create a stub using a channel.
-     *
+     * 使用 channel 创建一个 stub
+     * itodo：这应该是 grpc 的内部方法，待了解
      * @param managedChannelTemp channel.
      * @return if server check success,return a non-null stub.
      */
@@ -173,7 +176,7 @@ public abstract class GrpcClient extends RpcClient {
 
     /**
      * create a new channel with specific server address.
-     *
+     * 指定服务端地址，创建一个 channel
      * @param serverIp   serverIp.
      * @param serverPort serverPort.
      * @return if server check success,return a non-null channel.
@@ -181,6 +184,7 @@ public abstract class GrpcClient extends RpcClient {
     private ManagedChannel createNewManagedChannel(String serverIp, int serverPort) {
         LOGGER.info("grpc client connection server:{} ip,serverPort:{},grpcTslConfig:{}", serverIp, serverPort,
                 JacksonUtils.toJson(clientConfig.tlsConfig()));
+        // itodo： 这个地方需要了解 知识
         ManagedChannelBuilder<?> managedChannelBuilder = buildChannel(serverIp, serverPort, buildSslContext())
                 .executor(grpcExecutor).compressorRegistry(CompressorRegistry.getDefaultInstance())
                 .decompressorRegistry(DecompressorRegistry.getDefaultInstance())
@@ -214,9 +218,11 @@ public abstract class GrpcClient extends RpcClient {
             }
             ServerCheckRequest serverCheckRequest = new ServerCheckRequest();
             Payload grpcRequest = GrpcUtils.convert(serverCheckRequest);
+            // 此处使用 requestBlockingStub 进行请求
             ListenableFuture<Payload> responseFuture = requestBlockingStub.request(grpcRequest);
             Payload response = responseFuture.get(clientConfig.serverCheckTimeOut(), TimeUnit.MILLISECONDS);
             //receive connection unregister response here,not check response is success.
+            // 这里接收到连接注销响应，而不是检查响应是否成功。
             return (Response) GrpcUtils.parse(response);
         } catch (Exception e) {
             LoggerUtils.printIfErrorEnabled(LOGGER,
@@ -241,7 +247,9 @@ public abstract class GrpcClient extends RpcClient {
                     if (request != null) {
 
                         try {
+                            // 处理服务端请求
                             Response response = handleServerRequest(request);
+                            // 不是指定的三类，直接回复
                             if (response != null) {
                                 response.setRequestId(request.getRequestId());
                                 sendResponse(response);
@@ -256,6 +264,7 @@ public abstract class GrpcClient extends RpcClient {
                             Response errResponse = ErrorResponse.build(NacosException.CLIENT_ERROR,
                                     "Handle server request error");
                             errResponse.setRequestId(request.getRequestId());
+                            // 出现异常，回复异常响应
                             sendResponse(errResponse);
                         }
 
@@ -272,10 +281,13 @@ public abstract class GrpcClient extends RpcClient {
             public void onError(Throwable throwable) {
                 boolean isRunning = isRunning();
                 boolean isAbandon = grpcConn.isAbandon();
+                // 客户度正在运行，并且 不禁止 连接其他服务器
                 if (isRunning && !isAbandon) {
                     LoggerUtils.printIfErrorEnabled(LOGGER, "[{}]Request stream error, switch server,error={}",
                             grpcConn.getConnectionId(), throwable);
+                    // CAS 设置 客户端状态为不健康，尝试连接其他服务端
                     if (rpcClientStatus.compareAndSet(RpcClientStatus.RUNNING, RpcClientStatus.UNHEALTHY)) {
+                        // 向阻塞队列添加任务，定时任务会扫描出，进行重连
                         switchServerAsync();
                     }
 
@@ -315,29 +327,41 @@ public abstract class GrpcClient extends RpcClient {
         }
     }
 
+    /**
+     * 连接到客户端
+     * @param serverInfo server address to connect.
+     * @return
+     */
     @Override
     public Connection connectToServer(ServerInfo serverInfo) {
         try {
+            // 判断 gprc 的线程池，为空创建
             if (grpcExecutor == null) {
                 this.grpcExecutor = createGrpcExecutor(serverInfo.getServerIp());
             }
+            // rpc 端口号 = 8848 + 1000
             int port = serverInfo.getServerPort() + rpcPortOffset();
+            // 创建新的 channel
             ManagedChannel managedChannel = createNewManagedChannel(serverInfo.getServerIp(), port);
+            // gprc 内部方法，使用 channel 创建 stub
             RequestGrpc.RequestFutureStub newChannelStubTemp = createNewChannelStub(managedChannel);
             if (newChannelStubTemp != null) {
-
+                // 服务端检查：
                 Response response = serverCheck(serverInfo.getServerIp(), port, newChannelStubTemp);
                 if (response == null || !(response instanceof ServerCheckResponse)) {
+                    // 关闭 channel
                     shuntDownChannel(managedChannel);
                     return null;
                 }
-
+                // 使用 channel 创建一个新的 双端流式 stub
                 BiRequestStreamGrpc.BiRequestStreamStub biRequestStreamStub = BiRequestStreamGrpc.newStub(
                         newChannelStubTemp.getChannel());
+                // 创建 grpc 连接对象
                 GrpcConnection grpcConn = new GrpcConnection(serverInfo, grpcExecutor);
                 grpcConn.setConnectionId(((ServerCheckResponse) response).getConnectionId());
 
                 //create stream request and bind connection event to this connection.
+                // 创建 流式请求 绑定连接事件到这个连接
                 StreamObserver<Payload> payloadStreamObserver = bindRequestStream(biRequestStreamStub, grpcConn);
 
                 // stream observer to send response to server
@@ -345,12 +369,14 @@ public abstract class GrpcClient extends RpcClient {
                 grpcConn.setGrpcFutureServiceStub(newChannelStubTemp);
                 grpcConn.setChannel(managedChannel);
                 //send a  setup request.
+                // 发送一个设置请求，是流式请求
                 ConnectionSetupRequest conSetupRequest = new ConnectionSetupRequest();
                 conSetupRequest.setClientVersion(VersionUtils.getFullClientVersion());
                 conSetupRequest.setLabels(super.getLabels());
                 conSetupRequest.setAbilities(super.clientAbilities);
                 conSetupRequest.setTenant(super.getTenant());
                 grpcConn.sendRequest(conSetupRequest);
+
                 //wait to register connection setup
                 Thread.sleep(100L);
                 return grpcConn;

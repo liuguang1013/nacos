@@ -18,8 +18,8 @@ package com.alibaba.nacos.api.remote.request;
 
 /**
  * request to check server if unimpeded.
- *
- * @author liuzunfei
+ * 创建 客户端与服务端的连接时候，使用 channel 生成的 stub 进行连接检查请求
+ * * @author liuzunfei
  * @version $Id: ServerCheckRequest.java, v 0.1 2020年07月22日 8:32 PM liuzunfei Exp $
  */
 public class ServerCheckRequest extends InternalRequest {

@@ -82,7 +82,7 @@ public class GrpcUtils {
                 .setClientIp(NetUtils.localIP()).putAllHeaders(request.getHeaders()).build();
         // 对象转换为 json字节数组
         byte[] jsonBytes = convertRequestToByte(request);
-        
+        // 构建 grpc 的 载荷对象
         Payload.Builder builder = Payload.newBuilder();
         
         return builder
@@ -105,7 +105,12 @@ public class GrpcUtils {
                 .setBody(Any.newBuilder().setValue(UnsafeByteOperations.unsafeWrap(jsonBytes)))
                 .setMetadata(metaBuilder.build()).build();
     }
-    
+
+    /**
+     * 将请求 去除 请求头后，转换为 字节数组
+     * @param request
+     * @return
+     */
     private static byte[] convertRequestToByte(Request request) {
         // 暂存 header
         Map<String, String> requestHeaders = new HashMap<>(request.getHeaders());

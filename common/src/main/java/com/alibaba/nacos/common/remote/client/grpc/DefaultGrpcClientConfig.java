@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Default grpc client config.
- *
+ * 默认的 GPRC 配置类
  * @author karsonto
  */
 public class DefaultGrpcClientConfig implements GrpcClientConfig {

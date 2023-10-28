@@ -22,7 +22,7 @@ import com.alibaba.nacos.api.remote.response.Response;
 
 /**
  * connection interface,define basic operation.
- *
+ * 连接对象接口，定义基本的操作
  * @author liuzunfei
  * @version $Id: Requester.java, v 0.1 2020年09月11日 4:05 PM liuzunfei Exp $
  */

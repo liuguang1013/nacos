@@ -70,6 +70,8 @@ public class ServerListManager implements ServerListFactory, Closeable {
     private final AtomicInteger currentIndex = new AtomicInteger();
     /**
      * 从 配置文件中 获取的服务列表
+     * ip+端口号
+     * 在服务重连的时候，会使用
      */
     private final List<String> serverList = new ArrayList<>();
 

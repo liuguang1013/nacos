@@ -23,23 +23,27 @@ import "google/protobuf/timestamp.proto";
 option java_multiple_files = true;
 option java_package = "com.alibaba.nacos.api.grpc.auto";
 
+// 入参的属性
 message Metadata {
   string type = 3;
   string clientIp = 8;
   map<string, string> headers = 7;
 }
 
+// 请求的出入参
 message Payload {
   Metadata metadata = 2;
   google.protobuf.Any body = 3;
 }
 
+// grpc 的简单请求
 service Request {
   // Sends a commonRequest
   rpc request (Payload) returns (Payload) {
   }
 }
 
+// grpc 的 双端流式请求
 service BiRequestStream {
   // Sends a biStreamRequest
   rpc requestBiStream (stream Payload) returns (stream Payload) {

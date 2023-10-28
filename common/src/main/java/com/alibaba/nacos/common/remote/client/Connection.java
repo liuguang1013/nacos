@@ -28,7 +28,10 @@ import com.alibaba.nacos.api.remote.Requester;
 public abstract class Connection implements Requester {
     
     private String connectionId;
-    
+
+    /**
+     * 连接发生异常的时候，是否放弃连接其他服务端
+     */
     private boolean abandon = false;
     
     protected RpcClient.ServerInfo serverInfo;

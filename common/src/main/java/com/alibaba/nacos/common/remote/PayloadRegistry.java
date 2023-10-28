@@ -32,7 +32,10 @@ import java.util.ServiceLoader;
  */
 
 public class PayloadRegistry {
-    
+
+    /**
+     * key：Payload 接口实现类的 简单类名
+     */
     private static final Map<String, Class<?>> REGISTRY_REQUEST = new HashMap<>();
     
     static boolean initialized = false;

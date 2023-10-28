@@ -77,7 +77,7 @@ public class RpcClientTlsConfig extends TlsConfig {
         if (properties.containsKey(RpcConstants.RPC_CLIENT_TLS_TRUST_PWD)) {
             tlsConfig.setCertPrivateKeyPassword(properties.getProperty(RpcConstants.RPC_CLIENT_TLS_TRUST_PWD));
         }
-
+        // itodo:重复代码
         if (properties.containsKey(RpcConstants.RPC_CLIENT_TLS_PROVIDER)) {
             tlsConfig.setSslProvider(properties.getProperty(RpcConstants.RPC_CLIENT_TLS_PROVIDER));
         }
