@@ -51,9 +51,9 @@ public class RedoScheduledTask extends AbstractExecuteTask {
         }
         // 连接状态
         try {
-            // 重连实例
+            // 重连提供服务的实例
             redoForInstances();
-            // 重新订阅
+            // 重连订阅该服务的实例
             redoForSubscribes();
         } catch (Exception e) {
             LogUtils.NAMING_LOGGER.warn("Redo task run with unexpected exception: ", e);
@@ -140,7 +140,7 @@ public class RedoScheduledTask extends AbstractExecuteTask {
                 if (isClientDisabled()) {
                     return;
                 }
-                // 开始订阅
+                // 开始重新订阅
                 clientProxy.doSubscribe(serviceName, groupName, cluster);
                 break;
             case UNREGISTER:

@@ -186,7 +186,8 @@ public abstract class GrpcClient extends RpcClient {
                 JacksonUtils.toJson(clientConfig.tlsConfig()));
         // itodo： 这个地方需要了解 知识
         ManagedChannelBuilder<?> managedChannelBuilder = buildChannel(serverIp, serverPort, buildSslContext())
-                .executor(grpcExecutor).compressorRegistry(CompressorRegistry.getDefaultInstance())
+                .executor(grpcExecutor)
+                .compressorRegistry(CompressorRegistry.getDefaultInstance())
                 .decompressorRegistry(DecompressorRegistry.getDefaultInstance())
                 .maxInboundMessageSize(clientConfig.maxInboundMessageSize())
                 .keepAliveTime(clientConfig.channelKeepAlive(), TimeUnit.MILLISECONDS)
@@ -329,6 +330,9 @@ public abstract class GrpcClient extends RpcClient {
 
     /**
      * 连接到客户端
+     * 方法主要作用： 创建 GrpcConnection 对象
+     *      过程中： 发送 future 请求：ServerCheckRequest、
+     *              发送 流式请求 ConnectionSetupRequest
      * @param serverInfo server address to connect.
      * @return
      */
@@ -343,7 +347,7 @@ public abstract class GrpcClient extends RpcClient {
             int port = serverInfo.getServerPort() + rpcPortOffset();
             // 创建新的 channel
             ManagedChannel managedChannel = createNewManagedChannel(serverInfo.getServerIp(), port);
-            // gprc 内部方法，使用 channel 创建 stub
+            // gprc 内部方法，使用 channel 创建可以指定获取响应等待时间的 Future 类型的 stub
             RequestGrpc.RequestFutureStub newChannelStubTemp = createNewChannelStub(managedChannel);
             if (newChannelStubTemp != null) {
                 // 服务端检查：
@@ -358,6 +362,7 @@ public abstract class GrpcClient extends RpcClient {
                         newChannelStubTemp.getChannel());
                 // 创建 grpc 连接对象
                 GrpcConnection grpcConn = new GrpcConnection(serverInfo, grpcExecutor);
+                // 设置连接对象的 连接id
                 grpcConn.setConnectionId(((ServerCheckResponse) response).getConnectionId());
 
                 //create stream request and bind connection event to this connection.

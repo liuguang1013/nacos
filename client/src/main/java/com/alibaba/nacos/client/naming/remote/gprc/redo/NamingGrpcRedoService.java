@@ -56,9 +56,13 @@ public class NamingGrpcRedoService implements ConnectionEventListener {
 
     /**
      * 已注册的实例 数据，实际就是 提供的服务
+     * key: groupName + @@ + serviceName
      */
     private final ConcurrentMap<String, InstanceRedoData> registeredInstances = new ConcurrentHashMap<>();
-    
+
+    /**
+     * 服务订阅者订阅者
+     */
     private final ConcurrentMap<String, SubscriberRedoData> subscribes = new ConcurrentHashMap<>();
     
     private final ScheduledExecutorService redoExecutor;
@@ -76,20 +80,30 @@ public class NamingGrpcRedoService implements ConnectionEventListener {
     public boolean isConnected() {
         return connected;
     }
-    
+
+    /**
+     * 客户端初次启动成功 或者 重新连接服务端的时候
+     * 触发 连接事件
+     */
     @Override
     public void onConnected() {
         connected = true;
         LogUtils.NAMING_LOGGER.info("Grpc connection connect");
     }
-    
+
+    /**
+     * 在客户端关闭 RpcClientStatus.SHUTDOWN 或者 重新连接服务端成功后关闭之前连接
+     * 会触发 断开连接事件
+     */
     @Override
     public void onDisConnect() {
         connected = false;
         LogUtils.NAMING_LOGGER.warn("Grpc connection disconnect, mark to redo");
+        // 将为客户端提供服务的实例，标记为：未注册
         synchronized (registeredInstances) {
             registeredInstances.values().forEach(instanceRedoData -> instanceRedoData.setRegistered(false));
         }
+        // 将订阅客户端的服务实例，标记为：未注册
         synchronized (subscribes) {
             subscribes.values().forEach(subscriberRedoData -> subscriberRedoData.setRegistered(false));
         }
@@ -104,6 +118,7 @@ public class NamingGrpcRedoService implements ConnectionEventListener {
      * @param instance    registered instance
      */
     public void cacheInstanceForRedo(String serviceName, String groupName, Instance instance) {
+        // groupName + @@ + serviceName
         String key = NamingUtils.getGroupedName(serviceName, groupName);
         InstanceRedoData redoData = InstanceRedoData.build(serviceName, groupName, instance);
         synchronized (registeredInstances) {
@@ -193,7 +208,7 @@ public class NamingGrpcRedoService implements ConnectionEventListener {
     
     /**
      * Find all instance redo data which need do redo.
-     * 找到所有需要做重做的实例重做数据。
+     * 找到所有需要重连的服务数据
      *
      * @return set of {@code InstanceRedoData} need to do redo.
      */

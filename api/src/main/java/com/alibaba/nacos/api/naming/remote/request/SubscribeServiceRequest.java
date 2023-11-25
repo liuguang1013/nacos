@@ -19,6 +19,7 @@ package com.alibaba.nacos.api.naming.remote.request;
 /**
  * Nacos naming subscribe service request.
  *
+ * 订阅服务请求
  * @author xiweng.yy
  */
 public class SubscribeServiceRequest extends AbstractNamingRequest {

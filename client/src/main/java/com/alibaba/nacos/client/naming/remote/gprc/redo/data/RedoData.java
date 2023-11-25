@@ -32,21 +32,27 @@ public abstract class RedoData<T> {
     
     /**
      * Expected states for finally.
+     * 最后预期的状态
      *
      * <ul>
      *     <li>{@code true} meas the cached data expect registered to server finally.</li>
+     *     true 意味着缓存数据最后期望注册到服务端
+     *
      *     <li>{@code false} means unregistered from server.</li>
+     *     false 意味着服务最后不注册到服务端
      * </ul>
      */
     private volatile boolean expectedRegistered;
     
     /**
      * If {@code true} means cached data has been registered to server successfully.
+     * 缓存的数据已经注册到客户端
      */
     private volatile boolean registered;
     
     /**
      * If {@code true} means cached data is unregistering from server.
+     * 缓存的数据还没有注册到服务端
      */
     private volatile boolean unregistering;
     
@@ -107,19 +113,32 @@ public abstract class RedoData<T> {
         this.registered = false;
         this.unregistering = true;
     }
-    
+
+    /**
+     * 判断是够需要重连
+     * @return
+     */
     public boolean isNeedRedo() {
         return !RedoType.NONE.equals(getRedoType());
     }
     
     /**
      * Get redo type for current redo data without expected state.
+     * 获取没有预期状态的当前重做数据的重做类型。
      *
      * <ul>
      *     <li>{@code registered=true} & {@code unregistering=false} means data has registered, so redo should not do anything.</li>
+     *     数据已经重新注册过，所以重连服务什么也不做
+     *
      *     <li>{@code registered=true} & {@code unregistering=true} means data has registered and now need unregister.</li>
+     *     数据已经重新注册过，现在需要取消注册
+     *
      *     <li>{@code registered=false} & {@code unregistering=false} means not registered yet, need register again.</li>
+     *     数据还没有重新注册过，需要重新注册
+     *
      *     <li>{@code registered=false} & {@code unregistering=true} means not registered yet and not continue to register.</li>
+     *     数据还没有重新注册过，并不需要重新注册
+     *
      * </ul>
      *
      * @return redo type

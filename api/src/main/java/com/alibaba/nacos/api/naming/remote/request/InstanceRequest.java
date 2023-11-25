@@ -20,6 +20,8 @@ import com.alibaba.nacos.api.naming.pojo.Instance;
 
 /**
  * Nacos instances request.
+ * 实例请求
+ * 包含：
  *
  * @author xiweng.yy
  */

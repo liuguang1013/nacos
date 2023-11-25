@@ -211,6 +211,7 @@ public class NamingGrpcClientProxy extends AbstractNamingClientProxy {
     
     /**
      * Execute register operation.
+     * 执行重新注册操作
      *
      * @param serviceName name of service
      * @param groupName   group of service
@@ -220,6 +221,7 @@ public class NamingGrpcClientProxy extends AbstractNamingClientProxy {
     public void doRegisterService(String serviceName, String groupName, Instance instance) throws NacosException {
         InstanceRequest request = new InstanceRequest(namespaceId, serviceName, groupName,
                 NamingRemoteConstants.REGISTER_INSTANCE, instance);
+        // 发送请求到服务端
         requestToServer(request, Response.class);
         redoService.instanceRegistered(serviceName, groupName);
     }
@@ -345,7 +347,7 @@ public class NamingGrpcClientProxy extends AbstractNamingClientProxy {
     
     /**
      * Execute unsubscribe operation.
-     *
+     * 取消订阅请求
      * @param serviceName service name
      * @param groupName   group name
      * @param clusters    clusters, current only support subscribe all clusters, maybe deprecated

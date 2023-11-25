@@ -67,7 +67,14 @@ public class GrpcConnection extends Connection {
         super(serverInfo);
         this.executor = executor;
     }
-    
+
+    /**
+     * 发送 普通的 future 请求
+     * @param request      request.
+     * @param timeouts
+     * @return
+     * @throws NacosException
+     */
     @Override
     public Response request(Request request, long timeouts) throws NacosException {
         // 将 request 请求对象 转换为  GRPC 请求 Payload
@@ -175,6 +182,7 @@ public class GrpcConnection extends Connection {
     
     @Override
     public void close() {
+        // 关闭流式请求
         if (this.payloadStreamObserver != null) {
             try {
                 payloadStreamObserver.onCompleted();
@@ -182,7 +190,7 @@ public class GrpcConnection extends Connection {
                 //ignore.
             }
         }
-        
+        // 关闭 channel
         if (this.channel != null && !channel.isShutdown()) {
             try {
                 this.channel.shutdownNow();
