@@ -67,22 +67,35 @@ public class GrpcBiStreamRequestAcceptor extends BiRequestStreamGrpc.BiRequestSt
     
     @Override
     public StreamObserver<Payload> requestBiStream(StreamObserver<Payload> responseObserver) {
-        
+
+        // 创建 流 的观察者
         StreamObserver<Payload> streamObserver = new StreamObserver<Payload>() {
-            
+            /**
+             * grpc 连接id
+             */
             final String connectionId = GrpcServerConstants.CONTEXT_KEY_CONN_ID.get();
-            
+            /**
+             * 本地端口号
+             */
             final Integer localPort = GrpcServerConstants.CONTEXT_KEY_CONN_LOCAL_PORT.get();
-            
+
+            /**
+             * 远程端口号
+             */
             final int remotePort = GrpcServerConstants.CONTEXT_KEY_CONN_REMOTE_PORT.get();
-            
+
+            /**
+             * 远程ip
+             */
             String remoteIp = GrpcServerConstants.CONTEXT_KEY_CONN_REMOTE_IP.get();
-            
+            /**
+             * 客户端 ip
+             */
             String clientIp = "";
             
             @Override
             public void onNext(Payload payload) {
-                
+                // 在请求头中获取客户端的 ip，客户端每次请求都会在 对象转 payload 时候加上
                 clientIp = payload.getMetadata().getClientIp();
                 traceDetailIfNecessary(payload);
                 
@@ -94,13 +107,15 @@ public class GrpcBiStreamRequestAcceptor extends BiRequestStreamGrpc.BiRequestSt
                             .warn("[{}]Grpc request bi stream,payload parse error={}", connectionId, throwable);
                     return;
                 }
-                
+                // 请求空值检查
                 if (parseObj == null) {
                     Loggers.REMOTE_DIGEST
                             .warn("[{}]Grpc request bi stream,payload parse null ,body={},meta={}", connectionId,
                                     payload.getBody().getValue().toStringUtf8(), payload.getMetadata());
                     return;
                 }
+                // 判断是 连接重置请求
+                // todo： 什么时候发的 ConnectionSetupRequest？客户端 connectToServer() 时，发送该流式请求
                 if (parseObj instanceof ConnectionSetupRequest) {
                     ConnectionSetupRequest setUpRequest = (ConnectionSetupRequest) parseObj;
                     Map<String, String> labels = setUpRequest.getLabels();
@@ -108,24 +123,33 @@ public class GrpcBiStreamRequestAcceptor extends BiRequestStreamGrpc.BiRequestSt
                     if (labels != null && labels.containsKey(Constants.APPNAME)) {
                         appName = labels.get(Constants.APPNAME);
                     }
-                    
+                    // 创建 连接元数据： 连接id 、客户端IP + 端口、服务端端IP + 端口、连接类型、客户端版本、app 名、标签
                     ConnectionMeta metaInfo = new ConnectionMeta(connectionId, payload.getMetadata().getClientIp(),
                             remoteIp, remotePort, localPort, ConnectionType.GRPC.getType(),
                             setUpRequest.getClientVersion(), appName, setUpRequest.getLabels());
+                    // 租户：实际是 nameSpace
                     metaInfo.setTenant(setUpRequest.getTenant());
+                    // 创建 grpc 连接对象
                     Connection connection = new GrpcConnection(metaInfo, responseObserver, GrpcServerConstants.CONTEXT_KEY_CHANNEL.get());
+                    // 为服务端设置客户端的能力： clientWork 设置  nacos 客户端能力：远程、配置能力
                     connection.setAbilities(setUpRequest.getAbilities());
+                    // 是 sdk 并且 服务器没有启动成功
                     boolean rejectSdkOnStarting = metaInfo.isSdkSource() && !ApplicationUtils.isStarted();
-                    
+
+                    // 连接管理者注册连接不成功，且 还没开始完成
                     if (rejectSdkOnStarting || !connectionManager.register(connectionId, connection)) {
                         //Not register to the connection manager if current server is over limit or server is starting.
+                        //如果当前服务器超过限制或服务器正在启动，则不注册到连接管理器。
                         try {
                             Loggers.REMOTE_DIGEST.warn("[{}]Connection register fail,reason:{}", connectionId,
                                     rejectSdkOnStarting ? " server is not started" : " server is over limited.");
+                            // 发送流式请求：连接重置
                             connection.request(new ConnectResetRequest(), 3000L);
+                            // 关闭连接
                             connection.close();
                         } catch (Exception e) {
                             //Do nothing.
+                            // 超时会抛出异常，但是不处理
                             if (connectionManager.traced(clientIp)) {
                                 Loggers.REMOTE_DIGEST
                                         .warn("[{}]Send connect reset request error,error={}", connectionId, e);
@@ -133,13 +157,17 @@ public class GrpcBiStreamRequestAcceptor extends BiRequestStreamGrpc.BiRequestSt
                         }
                     }
                     
-                } else if (parseObj instanceof Response) {
+                }
+                // 响应
+                else if (parseObj instanceof Response) {
                     Response response = (Response) parseObj;
                     if (connectionManager.traced(clientIp)) {
                         Loggers.REMOTE_DIGEST
                                 .warn("[{}]Receive response of server request  ,response={}", connectionId, response);
                     }
+                    // 服务端发送请求后，客户端返回响应，回调通知
                     RpcAckCallbackSynchronizer.ackNotify(connectionId, response);
+                    // 刷新激活时间
                     connectionManager.refreshActiveTime(connectionId);
                 } else {
                     Loggers.REMOTE_DIGEST

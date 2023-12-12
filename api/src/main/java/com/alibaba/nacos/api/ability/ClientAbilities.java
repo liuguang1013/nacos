@@ -24,6 +24,7 @@ import java.io.Serializable;
 
 /**
  * abilities of nacos client.
+ * nacos 客户端能力：远程、配置、命名能力
  *
  * @author liuzunfei
  * @version $Id: ClientAbilities.java, v 0.1 2021年01月24日 00:09 AM liuzunfei Exp $

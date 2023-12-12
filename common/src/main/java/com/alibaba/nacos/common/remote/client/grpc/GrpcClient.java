@@ -350,7 +350,7 @@ public abstract class GrpcClient extends RpcClient {
             // gprc 内部方法，使用 channel 创建可以指定获取响应等待时间的 Future 类型的 stub
             RequestGrpc.RequestFutureStub newChannelStubTemp = createNewChannelStub(managedChannel);
             if (newChannelStubTemp != null) {
-                // 服务端检查：
+                // 服务端检查：ServerCheckRequest
                 Response response = serverCheck(serverInfo.getServerIp(), port, newChannelStubTemp);
                 if (response == null || !(response instanceof ServerCheckResponse)) {
                     // 关闭 channel

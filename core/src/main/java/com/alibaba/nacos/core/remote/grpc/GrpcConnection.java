@@ -37,13 +37,19 @@ import io.grpc.stub.StreamObserver;
 /**
  * grpc connection.
  *
+ * 服务端的 gRPC connection 对象
  * @author liuzunfei
  * @version $Id: GrpcConnection.java, v 0.1 2020年07月13日 7:26 PM liuzunfei Exp $
  */
 public class GrpcConnection extends Connection {
-    
+    /**
+     * 流观察者
+     */
     private StreamObserver streamObserver;
-    
+
+    /**
+     *  grpc 原生 channel
+     */
     private Channel channel;
     
     public GrpcConnection(ConnectionMeta metaInfo, StreamObserver streamObserver, Channel channel) {
@@ -55,6 +61,7 @@ public class GrpcConnection extends Connection {
     private void sendRequestNoAck(Request request) throws NacosException {
         try {
             //StreamObserver#onNext() is not thread-safe,synchronized is required to avoid direct memory leak.
+            // StreamObserver#onNext() 不是线程安全的，synchronized 避免内存泄漏
             synchronized (streamObserver) {
                 
                 Payload payload = GrpcUtils.convert(request);
@@ -89,20 +96,31 @@ public class GrpcConnection extends Connection {
         
         DefaultRequestFuture defaultPushFuture = new DefaultRequestFuture(getMetaInfo().getConnectionId(), requestId,
                 callBack, () -> RpcAckCallbackSynchronizer.clearFuture(getMetaInfo().getConnectionId(), requestId));
-        
+        // todo： 回调同步器 作用是啥？回调成功后请求请求id及对应的 DefaultRequestFuture
         RpcAckCallbackSynchronizer.syncCallback(getMetaInfo().getConnectionId(), requestId, defaultPushFuture);
+        // 使用 StreamObserver#onNext() 发送请求
         sendRequestNoAck(request);
+
         return defaultPushFuture;
     }
-    
+
+    /**
+     *
+     * @param request      request. 请求
+     * @param timeoutMills mills of timeouts. 超时时间
+     * @return
+     * @throws NacosException
+     */
     @Override
     public Response request(Request request, long timeoutMills) throws NacosException {
         DefaultRequestFuture pushFuture = sendRequestInner(request, null);
         try {
+            // 获取
             return pushFuture.get(timeoutMills);
         } catch (Exception e) {
             throw new NacosException(NacosException.SERVER_ERROR, e);
         } finally {
+            // 清除连接 id
             RpcAckCallbackSynchronizer.clearFuture(getMetaInfo().getConnectionId(), pushFuture.getRequestId());
         }
     }
@@ -127,8 +145,9 @@ public class GrpcConnection extends Connection {
             if (isTraced()) {
                 Loggers.REMOTE_DIGEST.warn("[{}] try to close connection ", connectionId);
             }
-            
+            // 关闭
             closeBiStream();
+            // 关闭底层 netty channel
             channel.close();
             
         } catch (Exception e) {

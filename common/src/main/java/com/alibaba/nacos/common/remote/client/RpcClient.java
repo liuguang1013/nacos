@@ -87,6 +87,7 @@ public abstract class RpcClient implements Closeable {
     protected ScheduledExecutorService clientEventExecutor;
     /**
      * 阻塞队列：保存需要重连的信号
+     *  当接收 ConnectResetRequest 请求时候 添加
      */
     private final BlockingQueue<ReconnectContext> reconnectionSignal = new ArrayBlockingQueue<>(1);
     
@@ -115,7 +116,10 @@ public abstract class RpcClient implements Closeable {
     protected List<ServerRequestHandler> serverRequestHandlers = new ArrayList<>();
     
     private static final Pattern EXCLUDE_PROTOCOL_PATTERN = Pattern.compile("(?<=\\w{1,5}://)(.*)");
-    
+
+    /**
+     * rpc 客户端配置
+     */
     protected RpcClientConfig rpcClientConfig;
 
     protected final ResourceLoader resourceLoader = new DefaultResourceLoader();
@@ -152,7 +156,7 @@ public abstract class RpcClient implements Closeable {
     
     /**
      * init client abilities.
-     *
+     * clientWork 设置  nacos 客户端能力：远程、配置能力
      * @param clientAbilities clientAbilities.
      */
     public RpcClient clientAbilities(ClientAbilities clientAbilities) {
@@ -435,6 +439,7 @@ public abstract class RpcClient implements Closeable {
         }
 
         // 注册服务端请求处理器：服务端发送 连接重置请求时候 使用
+        // 在 客户端连接服务端时候，服务端还未启动完成/超过服务端连接数，服务端发送连接重置请求
         registerServerRequestHandler(new ConnectResetRequestHandler());
         
         // register client detection request.
@@ -448,18 +453,23 @@ public abstract class RpcClient implements Closeable {
         });
         
     }
-    
+
+    /**
+     * 流式处理的 onNext 方法中
+     * 处理服务端连接重置请求
+     */
     class ConnectResetRequestHandler implements ServerRequestHandler {
         
         @Override
         public Response requestReply(Request request) {
-            
+            // 判断请求类型
             if (request instanceof ConnectResetRequest) {
                 
                 try {
                     synchronized (RpcClient.this) {
                         if (isRunning()) {
                             ConnectResetRequest connectResetRequest = (ConnectResetRequest) request;
+                            // 获取服务端 ip ，重新连接服务端
                             if (StringUtils.isNotBlank(connectResetRequest.getServerIp())) {
                                 ServerInfo serverInfo = resolveServerInfo(
                                         connectResetRequest.getServerIp() + Constants.COLON + connectResetRequest
@@ -522,6 +532,7 @@ public abstract class RpcClient implements Closeable {
     
     protected void switchServerAsync(final ServerInfo recommendServerInfo, boolean onRequestFail) {
         // 向保存重连信号的 阻塞队列中添加元素
+        // 当接收 ConnectResetRequest 请求时候 添加
         reconnectionSignal.offer(new ReconnectContext(recommendServerInfo, onRequestFail));
     }
 
@@ -725,7 +736,7 @@ public abstract class RpcClient implements Closeable {
                 if (response == null) {
                     throw new NacosException(SERVER_ERROR, "Unknown Exception.");
                 }
-                // 错误响应
+                // 错误响应：当服务端还没启动完成可能会返回这个响应
                 if (response instanceof ErrorResponse) {
                     // 错误类型：连接没有注册，说明 rpc 连接不健康，服务端此时已经把当前客户端连接移除了
                     if (response.getErrorCode() == NacosException.UN_REGISTER) {
@@ -1108,7 +1119,11 @@ public abstract class RpcClient implements Closeable {
     public String getTenant() {
         return tenant;
     }
-    
+
+    /**
+     * clientWork 中设置，实际是 namespace
+     * @param tenant
+     */
     public void setTenant(String tenant) {
         this.tenant = tenant;
     }

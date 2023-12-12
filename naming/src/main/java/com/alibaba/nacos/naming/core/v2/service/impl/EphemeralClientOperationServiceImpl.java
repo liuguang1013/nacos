@@ -54,9 +54,11 @@ public class EphemeralClientOperationServiceImpl implements ClientOperationServi
     
     @Override
     public void registerInstance(Service service, Instance instance, String clientId) throws NacosException {
+        // 检查心跳超时时间、检查集群名
         NamingUtils.checkInstanceIsLegal(instance);
-    
+        // 在服务管理者处，获取服务对象。单例的
         Service singleton = ServiceManager.getInstance().getSingleton(service);
+        // 服务类型是持久类型，抛出异常
         if (!singleton.isEphemeral()) {
             throw new NacosRuntimeException(NacosException.INVALID_PARAM,
                     String.format("Current service %s is persistent service, can't register ephemeral instance.",
@@ -107,6 +109,7 @@ public class EphemeralClientOperationServiceImpl implements ClientOperationServi
             Loggers.SRV_LOG.warn("remove instance from non-exist service: {}", service);
             return;
         }
+        // 缓存获取服务对象
         Service singleton = ServiceManager.getInstance().getSingleton(service);
         Client client = clientManager.getClient(clientId);
         if (!clientIsLegal(client, clientId)) {

@@ -24,6 +24,7 @@ import java.util.List;
 
 /**
  * registry for client connection event listeners.
+ * 注册客户端连接事件监听者
  *
  * @author liuzunfei
  * @version $Id: ClientConnectionEventListenerRegistry.java, v 0.1 2020年07月20日 1:47 PM liuzunfei Exp $
@@ -35,6 +36,9 @@ public class ClientConnectionEventListenerRegistry {
     
     /**
      * notify where a new client connected.
+     * 通知一个新的客户端连接： 遍历每个监听者
+     * 实际上 ClientConnectionEventListener 抽象类的子类，创建的时候会 增加监听者
+     * 如：ConnectionBasedClientManager、
      *
      * @param connection connection that new created.
      */

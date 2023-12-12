@@ -38,6 +38,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * rpc request acceptor of grpc.
+ * grpc的RPC请求接收方。
  *
  * @author liuzunfei
  * @version $Id: GrpcCommonRequestAcceptor.java, v 0.1 2020年09月01日 10:52 AM liuzunfei Exp $
@@ -52,7 +53,9 @@ public class GrpcRequestAcceptor extends RequestGrpc.RequestImplBase {
     private ConnectionManager connectionManager;
     
     private void traceIfNecessary(Payload grpcRequest, boolean receive) {
+        // 获取请求方 ip
         String clientIp = grpcRequest.getMetadata().getClientIp();
+        // 获取 服务端启动的时候 放入的 连接ip
         String connectionId = GrpcServerConstants.CONTEXT_KEY_CONN_ID.get();
         try {
             // 如果追踪，进行 日志 输出
@@ -77,10 +80,11 @@ public class GrpcRequestAcceptor extends RequestGrpc.RequestImplBase {
     public void request(Payload grpcRequest, StreamObserver<Payload> responseObserver) {
         // 如果有必要 进行 追踪
         traceIfNecessary(grpcRequest, true);
+        // 实际上是 请求的类名
         String type = grpcRequest.getMetadata().getType();
         
         //server is on starting.
-        //
+        // 服务端正在启动
         if (!ApplicationUtils.isStarted()) {
             Payload payloadResponse = GrpcUtils.convert(
                     ErrorResponse.build(NacosException.INVALID_SERVER_STATUS, "Server is starting,please try later."));
@@ -93,7 +97,7 @@ public class GrpcRequestAcceptor extends RequestGrpc.RequestImplBase {
         }
         
         // server check.
-        // 服务端检查请求
+        // 服务端检查请求： 客户端连接到服务端的时候，会先发一次服务端检查请求
         if (ServerCheckRequest.class.getSimpleName().equals(type)) {
             Payload serverCheckResponseP = GrpcUtils.convert(new ServerCheckResponse(GrpcServerConstants.CONTEXT_KEY_CONN_ID.get()));
             traceIfNecessary(serverCheckResponseP, false);

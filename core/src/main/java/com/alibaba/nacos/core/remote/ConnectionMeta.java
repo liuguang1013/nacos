@@ -124,7 +124,8 @@ public class ConnectionMeta {
     
     /**
      * check if this connection is sdk source.
-     *
+     * 判断 gprc 客户端中的 标签是否为 cluster
+     * NamingGrpcClientProxy 创建的时候创建的 grpc 客户端，传入的时 sdk 类型
      * @return if this connection is sdk source.
      */
     public boolean isClusterSource() {

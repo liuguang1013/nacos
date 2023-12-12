@@ -24,7 +24,8 @@ import java.util.concurrent.TimeoutException;
 
 /**
  * default request future.
- *
+ * 默认的 请求 future
+ * 通过延迟任务来检测请求是否超时，
  * @author liuzunfei
  * @version $Id: DefaultRequestFuture.java, v 0.1 2020年09月01日 6:42 PM liuzunfei Exp $
  */
@@ -82,9 +83,11 @@ public class DefaultRequestFuture implements RequestFuture {
         this.requestId = requestId;
         this.connectionId = connectionId;
         if (requestCallBack != null) {
+            // 定时执行：延迟执行的时间，是请求的超时时间
             this.timeoutFuture = RpcScheduledExecutor.TIMEOUT_SCHEDULER
                     .schedule(new TimeoutHandler(), requestCallBack.getTimeout(), TimeUnit.MILLISECONDS);
         }
+        // 超时触发
         this.timeoutInnerTrigger = timeoutInnerTrigger;
     }
     
@@ -96,6 +99,7 @@ public class DefaultRequestFuture implements RequestFuture {
             timeoutFuture.cancel(true);
         }
         synchronized (this) {
+            // todo 唤醒其他线程 在什么时候挂起的？在get 结果的时候挂起的
             notifyAll();
         }
         
@@ -109,11 +113,12 @@ public class DefaultRequestFuture implements RequestFuture {
         synchronized (this) {
             notifyAll();
         }
-        
+        // 执行
         callBacInvoke();
     }
     
     private void callBacInvoke() {
+        // 在 GrpcConnection 中创建的 DefaultRequestFuture 中 requestCallBack 为null
         if (requestCallBack != null) {
             if (requestCallBack.getExecutor() != null) {
                 requestCallBack.getExecutor().execute(new CallBackHandler());
@@ -147,6 +152,7 @@ public class DefaultRequestFuture implements RequestFuture {
         if (timeout < 0) {
             synchronized (this) {
                 while (!isDone) {
+                    // 挂起线程
                     wait();
                 }
             }
@@ -160,10 +166,12 @@ public class DefaultRequestFuture implements RequestFuture {
                 }
             }
         }
-        
+        // 返回响应
         if (isDone) {
             return response;
-        } else {
+        }
+        // 清空请求缓存，抛出异常
+        else {
             if (timeoutInnerTrigger != null) {
                 timeoutInnerTrigger.triggerOnTimeout();
             }
@@ -193,6 +201,7 @@ public class DefaultRequestFuture implements RequestFuture {
             setFailResult(new TimeoutException(
                     "Timeout After " + requestCallBack.getTimeout() + " milliseconds,requestId =" + requestId));
             if (timeoutInnerTrigger != null) {
+                // 超时的时候 清除 requestId 和对应的 DefaultRequestFuture 缓存
                 timeoutInnerTrigger.triggerOnTimeout();
             }
         }

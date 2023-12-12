@@ -55,9 +55,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ConnectionManager {
     
     private static final Logger LOGGER = com.alibaba.nacos.plugin.control.Loggers.CONNECTION;
-    
+
+    /**
+     * 记录客户端，连接数量
+     * key： connectionId
+     */
     private Map<String, AtomicInteger> connectionForClientIp = new ConcurrentHashMap<>(16);
-    
+
+    /**
+     * key： connectionId
+     */
     Map<String, Connection> connections = new ConcurrentHashMap<>();
     
     private RuntimeConnectionEjector runtimeConnectionEjector;
@@ -98,9 +105,11 @@ public class ConnectionManager {
      * @param connection   connection
      */
     public synchronized boolean register(String connectionId, Connection connection) {
-        
+        // 已连接
         if (connection.isConnected()) {
+            // 获取客户端 ip
             String clientIp = connection.getMetaInfo().clientIp;
+            // 连接缓存中已包含该连接，直接返回
             if (connections.containsKey(connectionId)) {
                 return true;
             }
@@ -115,7 +124,8 @@ public class ConnectionManager {
                 connectionForClientIp.put(clientIp, new AtomicInteger(0));
             }
             connectionForClientIp.get(clientIp).getAndIncrement();
-            
+
+            // 通知 一个新的客户端连接： 遍历每个 clientConnectionEvent 监听者
             clientConnectionEventListenerRegistry.notifyClientConnected(connection);
             
             LOGGER.info("new connection registered successfully, connectionId = {},connection={} ", connectionId,
@@ -126,15 +136,24 @@ public class ConnectionManager {
         return false;
         
     }
-    
+
+    /**
+     * 检查限制
+     * @param connection
+     * @return
+     */
     private boolean checkLimit(Connection connection) {
+        // 检查连接是否是集群
         if (connection.getMetaInfo().isClusterSource()) {
             return false;
         }
+        // 获取连接元数据
         ConnectionMeta metaInfo = connection.getMetaInfo();
+        // 创建连接检查请求
         ConnectionCheckRequest connectionCheckRequest = new ConnectionCheckRequest(metaInfo.getClientIp(),
                 metaInfo.getAppName(), metaInfo.getLabel(RemoteConstants.LABEL_SOURCE));
         connectionCheckRequest.setLabels(connection.getLabels());
+        // 此处后续可以开发 控制连接数量的 插件
         ConnectionCheckResponse checkResponse = ControlManagerCenter.getInstance().getConnectionControlManager()
                 .check(connectionCheckRequest);
         return !checkResponse.isSuccess();
@@ -229,6 +248,7 @@ public class ConnectionManager {
     
     /**
      * regresh connection active time.
+     * 当有新的请求来，会刷新连接的活跃时间
      * itodo:发现注解有问题： regresh->refresh
      *
      * @param connectionId connectionId.
@@ -242,6 +262,7 @@ public class ConnectionManager {
     
     /**
      * Start Task：Expel the connection which active Time expire.
+     * 开始任务:排除活动时间过期的连接。
      * itodo：待看
      */
     @PostConstruct

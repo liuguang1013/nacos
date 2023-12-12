@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Service POJO for Nacos v2.
- *
+ * 2.X 版本的 服务对象
  * @author xiweng.yy
  */
 public class Service implements Serializable {

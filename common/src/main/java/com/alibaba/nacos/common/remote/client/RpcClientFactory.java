@@ -94,7 +94,7 @@ public class RpcClientFactory {
     /**
      * create a rpc client.
      *
-     * @param clientName         client name.
+     * @param clientName         client name. UUID
      * @param connectionType     client type.
      * @param threadPoolCoreSize grpc thread pool core size
      * @param threadPoolMaxSize  grpc thread pool max size
@@ -111,6 +111,7 @@ public class RpcClientFactory {
         return CLIENT_MAP.computeIfAbsent(clientName, clientNameInner -> {
             LOGGER.info("[RpcClientFactory] create a new rpc client of " + clientName);
             try {
+                // 创建 sdk 客户端
                 return new GrpcSdkClient(clientNameInner, threadPoolCoreSize, threadPoolMaxSize, labels, tlsConfig);
             } catch (Throwable throwable) {
                 LOGGER.error("Error to init GrpcSdkClient for client name :" + clientName, throwable);

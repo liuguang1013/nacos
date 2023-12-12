@@ -33,7 +33,13 @@ import java.util.concurrent.TimeoutException;
  * @version $Id: RpcAckCallbackSynchronizer.java, v 0.1 2020年07月29日 7:56 PM liuzunfei Exp $
  */
 public class RpcAckCallbackSynchronizer {
-    
+
+    /**
+     * 缓存
+     * key： connectionId
+     * value ： key： requestId
+     *         value： DefaultRequestFuture
+     */
     @SuppressWarnings("checkstyle:linelength")
     public static final Map<String, Map<String, DefaultRequestFuture>> CALLBACK_CONTEXT = new ConcurrentLinkedHashMap.Builder<String, Map<String, DefaultRequestFuture>>()
             .maximumWeightedCapacity(1000000)
@@ -42,18 +48,16 @@ public class RpcAckCallbackSynchronizer {
     
     /**
      * notify  ack.
+     * 回调通知
      */
     public static void ackNotify(String connectionId, Response response) {
         
         Map<String, DefaultRequestFuture> stringDefaultPushFutureMap = CALLBACK_CONTEXT.get(connectionId);
         if (stringDefaultPushFutureMap == null) {
-            
-            Loggers.REMOTE_DIGEST
-                    .warn("Ack receive on a outdated connection ,connection id={},requestId={} ", connectionId,
-                            response.getRequestId());
+            Loggers.REMOTE_DIGEST.warn("Ack receive on a outdated connection ,connection id={},requestId={} ", connectionId,response.getRequestId());
             return;
         }
-        
+        // 移除请求id
         DefaultRequestFuture currentCallback = stringDefaultPushFutureMap.remove(response.getRequestId());
         if (currentCallback == null) {
             
@@ -62,10 +66,12 @@ public class RpcAckCallbackSynchronizer {
                             response.getRequestId());
             return;
         }
-        
+        // 响应成功
         if (response.isSuccess()) {
             currentCallback.setResponse(response);
-        } else {
+        }
+        // 异常
+        else {
             currentCallback.setFailResult(new NacosException(response.getErrorCode(), response.getMessage()));
         }
     }
@@ -75,7 +81,7 @@ public class RpcAckCallbackSynchronizer {
      */
     public static void syncCallback(String connectionId, String requestId, DefaultRequestFuture defaultPushFuture)
             throws NacosException {
-        
+        // 初始化 context
         Map<String, DefaultRequestFuture> stringDefaultPushFutureMap = initContextIfNecessary(connectionId);
         
         if (!stringDefaultPushFutureMap.containsKey(requestId)) {

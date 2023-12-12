@@ -39,6 +39,7 @@ public abstract class ClientConnectionEventListener {
     
     @PostConstruct
     public void init() {
+        // 注册客户端连接事件监听者
         clientConnectionEventListenerRegistry.registerClientConnectionEventListener(this);
     }
     

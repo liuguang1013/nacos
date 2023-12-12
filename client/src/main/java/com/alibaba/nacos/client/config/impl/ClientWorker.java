@@ -896,8 +896,13 @@ public class ClientWorker implements Closeable {
             }
             
         }
-        
+
+        /**
+         * 初始化客户端能力
+         * @return
+         */
         private ClientAbilities initAbilities() {
+            // nacos 客户端能力 一共有三个：远程、配置、命名能力
             ClientAbilities clientAbilities = new ClientAbilities();
             clientAbilities.getRemoteAbility().setSupportRemoteConnection(true);
             clientAbilities.getConfigAbility().setSupportRemoteMetrics(true);

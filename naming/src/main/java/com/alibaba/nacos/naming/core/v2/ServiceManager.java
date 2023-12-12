@@ -38,9 +38,14 @@ public class ServiceManager {
     private final ConcurrentHashMap<Service, Service> singletonRepository;
     
     private final ConcurrentHashMap<String, Set<Service>> namespaceSingletonMaps;
-    
+
+    /**
+     * 初始化 服务管理者
+     */
     private ServiceManager() {
+        // 单例仓库 初始化大小 1024
         singletonRepository = new ConcurrentHashMap<>(1 << 10);
+        // 命名空间单例 map 初始化大小 4
         namespaceSingletonMaps = new ConcurrentHashMap<>(1 << 2);
     }
     
@@ -54,16 +59,19 @@ public class ServiceManager {
     
     /**
      * Get singleton service. Put to manager if no singleton.
+     * 获取单例对象，如果没有，交给管理者
      *
      * @param service new service
      * @return if service is exist, return exist service, otherwise return new service
      */
     public Service getSingleton(Service service) {
+        // 发布服务元数据事件：实际就是更新服务状态为：未过期
         singletonRepository.computeIfAbsent(service, key -> {
             NotifyCenter.publishEvent(new MetadataEvent.ServiceMetadataEvent(service, false));
             return service;
         });
         Service result = singletonRepository.get(service);
+        // 向 命名空间的服务单例 map 中增加缓存
         namespaceSingletonMaps.computeIfAbsent(result.getNamespace(), namespace -> new ConcurrentHashSet<>());
         namespaceSingletonMaps.get(result.getNamespace()).add(result);
         return result;

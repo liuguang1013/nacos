@@ -20,6 +20,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * id generator to server push ack.
+ * 服务端推送 id 生成器
  *
  * @author liuzunfei
  * @version $Id: PushAckIdGenerator.java, v 0.1 2020年07月20日 5:49 PM liuzunfei Exp $
@@ -32,6 +33,7 @@ public class PushAckIdGenerator {
     
     /**
      * get server push id.
+     * 获取服务端推送id
      */
     public static long getNextId() {
         if (id.longValue() > Long.MAX_VALUE - ID_PREV_REGEN_OFFSET) {

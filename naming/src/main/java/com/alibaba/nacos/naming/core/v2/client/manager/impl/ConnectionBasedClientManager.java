@@ -50,6 +50,7 @@ public class ConnectionBasedClientManager extends ClientConnectionEventListener 
     private final ConcurrentMap<String, ConnectionBasedClient> clients = new ConcurrentHashMap<>();
     
     public ConnectionBasedClientManager() {
+        // 初始无延迟，5s 执行一次，过期客户端清理
         GlobalExecutor
                 .scheduleExpiredClientCleaner(new ExpiredClientCleaner(this), 0, Constants.DEFAULT_HEART_BEAT_INTERVAL,
                         TimeUnit.MILLISECONDS);
@@ -101,7 +102,9 @@ public class ConnectionBasedClientManager extends ClientConnectionEventListener 
         if (null == client) {
             return true;
         }
+        // 客户端释放：处理指标监控数据
         client.release();
+        //
         NotifyCenter.publishEvent(new ClientEvent.ClientDisconnectEvent(client, isResponsibleClient(client)));
         return true;
     }

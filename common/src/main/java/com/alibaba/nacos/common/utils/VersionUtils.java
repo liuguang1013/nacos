@@ -37,6 +37,7 @@ public class VersionUtils {
     
     /**
      * current version.
+     * todo： 版本哪里来
      */
     public static final String VERSION_PLACEHOLDER = "${project.version}";
     

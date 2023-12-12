@@ -38,19 +38,26 @@ public class GrpcConnectionInterceptor implements ServerInterceptor {
     @Override
     public <T, S> ServerCall.Listener<T> interceptCall(ServerCall<T, S> call, Metadata headers,
             ServerCallHandler<T, S> next) {
-        Context ctx = Context.current().withValue(GrpcServerConstants.CONTEXT_KEY_CONN_ID,
+        // itodo:好像是添加 上下文的属性
+        Context ctx = Context.current()
+                // 连接id
+                .withValue(GrpcServerConstants.CONTEXT_KEY_CONN_ID,
                         call.getAttributes().get(GrpcServerConstants.ATTR_TRANS_KEY_CONN_ID))
+                // 对方 ip
                 .withValue(GrpcServerConstants.CONTEXT_KEY_CONN_REMOTE_IP,
                         call.getAttributes().get(GrpcServerConstants.ATTR_TRANS_KEY_REMOTE_IP))
+                // 对方 端口号
                 .withValue(GrpcServerConstants.CONTEXT_KEY_CONN_REMOTE_PORT,
                         call.getAttributes().get(GrpcServerConstants.ATTR_TRANS_KEY_REMOTE_PORT))
+                //
                 .withValue(GrpcServerConstants.CONTEXT_KEY_CONN_LOCAL_PORT,
                         call.getAttributes().get(GrpcServerConstants.ATTR_TRANS_KEY_LOCAL_PORT));
+        // 如果是流模式，设置 chanel
         if (GrpcServerConstants.REQUEST_BI_STREAM_SERVICE_NAME.equals(call.getMethodDescriptor().getServiceName())) {
             Channel internalChannel = getInternalChannel(call);
             ctx = ctx.withValue(GrpcServerConstants.CONTEXT_KEY_CHANNEL, internalChannel);
         }
-        
+        // 向下传递
         return Contexts.interceptCall(ctx, call, headers, next);
     }
     

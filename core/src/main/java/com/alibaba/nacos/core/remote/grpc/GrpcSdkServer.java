@@ -26,6 +26,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * Grpc implementation as  a rpc server.
+ * 作为rpc服务器的Grpc实现
  *
  * @author liuzunfei
  * @version $Id: BaseGrpcServer.java, v 0.1 2020年07月13日 3:42 PM liuzunfei Exp $

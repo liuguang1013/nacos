@@ -24,7 +24,8 @@ import org.springframework.stereotype.Component;
 
 /**
  * push response  to clients.
- *
+ * 健康检查的响应
+ * 客户端启动的时候，会有定时任务发送心跳
  * @author liuzunfei
  * @version $Id: PushService.java, v 0.1 2021年07月17日 1:12 PM liuzunfei Exp $
  */

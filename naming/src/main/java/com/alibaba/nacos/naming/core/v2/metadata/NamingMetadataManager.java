@@ -52,9 +52,12 @@ public class NamingMetadataManager extends SmartSubscriber {
     private static final int INITIAL_CAPACITY = 1;
     
     public NamingMetadataManager() {
+        // 初始化服务元数据、实例元数据 缓存map 大小：1024
         serviceMetadataMap = new ConcurrentHashMap<>(1 << 10);
         instanceMetadataMap = new ConcurrentHashMap<>(1 << 10);
+        // 过期元数据对象 set 集合
         expiredMetadataInfos = new ConcurrentHashSet<>();
+        // 订阅事件
         NotifyCenter.registerSubscriber(this, NamingEventPublisherFactory.getInstance());
     }
     
@@ -213,7 +216,11 @@ public class NamingMetadataManager extends SmartSubscriber {
     public Set<ExpiredMetadataInfo> getExpiredMetadataInfos() {
         return expiredMetadataInfos;
     }
-    
+
+    /**
+     * 订阅三种事件类型
+     * @return
+     */
     @Override
     public List<Class<? extends Event>> subscribeTypes() {
         List<Class<? extends Event>> result = new LinkedList<>();
@@ -226,10 +233,13 @@ public class NamingMetadataManager extends SmartSubscriber {
     @Override
     public void onEvent(Event event) {
         if (event instanceof MetadataEvent.InstanceMetadataEvent) {
+            // 处理实例元数据事件
             handleInstanceMetadataEvent((MetadataEvent.InstanceMetadataEvent) event);
         } else if (event instanceof MetadataEvent.ServiceMetadataEvent) {
+            // 处理服务元数据事件
             handleServiceMetadataEvent((MetadataEvent.ServiceMetadataEvent) event);
         } else {
+            // 处理客户端断线事件
             handleClientDisconnectEvent((ClientEvent.ClientDisconnectEvent) event);
         }
     }
@@ -245,7 +255,9 @@ public class NamingMetadataManager extends SmartSubscriber {
     
     private void handleServiceMetadataEvent(MetadataEvent.ServiceMetadataEvent event) {
         Service service = event.getService();
+        // 判断是否有服务元数据缓存
         if (containServiceMetadata(service)) {
+            // 更新过期信息
             updateExpiredInfo(event.isExpired(), ExpiredMetadataInfo.newExpiredServiceMetadata(service));
         }
     }

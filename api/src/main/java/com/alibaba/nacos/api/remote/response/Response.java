@@ -26,7 +26,10 @@ import com.alibaba.nacos.api.remote.Payload;
  */
 @SuppressWarnings("PMD.AbstractClassShouldStartWithAbstractNamingRule")
 public abstract class Response implements Payload {
-    
+
+    /**
+     * 响应的默认返回 code ，就是成功
+     */
     int resultCode = ResponseCode.SUCCESS.getCode();
     
     int errorCode;

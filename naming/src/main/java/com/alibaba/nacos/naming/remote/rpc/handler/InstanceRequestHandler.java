@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Instance request handler.
- *
+ * 当重新连接到下一个服务器的时候，重连注册实例时客户端发送 Instance request 请求
  * @author xiweng.yy
  */
 @Component
@@ -52,8 +52,10 @@ public class InstanceRequestHandler extends RequestHandler<InstanceRequest, Inst
         Service service = Service
                 .newService(request.getNamespace(), request.getGroupName(), request.getServiceName(), true);
         switch (request.getType()) {
+            // 注册实例
             case NamingRemoteConstants.REGISTER_INSTANCE:
                 return registerInstance(service, request, meta);
+            // 取消注册
             case NamingRemoteConstants.DE_REGISTER_INSTANCE:
                 return deregisterInstance(service, request, meta);
             default:
@@ -65,9 +67,11 @@ public class InstanceRequestHandler extends RequestHandler<InstanceRequest, Inst
     private InstanceResponse registerInstance(Service service, InstanceRequest request, RequestMeta meta)
             throws NacosException {
         clientOperationService.registerInstance(service, request.getInstance(), meta.getConnectionId());
+        // 发布事件：注册实例跟踪事件
         NotifyCenter.publishEvent(new RegisterInstanceTraceEvent(System.currentTimeMillis(),
                 meta.getClientIp(), true, service.getNamespace(), service.getGroup(), service.getName(),
                 request.getInstance().getIp(), request.getInstance().getPort()));
+        // 构建返回注册实例响应
         return new InstanceResponse(NamingRemoteConstants.REGISTER_INSTANCE);
     }
     

@@ -26,7 +26,7 @@ import com.alibaba.nacos.plugin.control.connection.rule.ConnectionControlRule;
 
 /**
  * connection control manager.
- *
+ * 连接控制管理
  * @author shiyiyue
  */
 public class NacosConnectionControlManager extends ConnectionControlManager {

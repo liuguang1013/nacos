@@ -58,7 +58,8 @@ import java.util.concurrent.TimeUnit;
  * Grpc implementation as a rpc server.
  * GRPC 服务端 有两个实现类：
  *  GrpcClusterServer 集群下的服务端、GrpcSdkServer sdk下服务端
- *  itodo： 两个实现类是在什么时候加载的？
+ *  itodo： 两个实现类是在什么时候加载的？两个实现类都有 @Service 修饰，spring 容器启动自动加载
+ *  itodo： 为什么 命名服务和 配置服务都 引用 core 包，并启动时候扫描加载了类
  * @author liuzunfei
  * @version $Id: BaseGrpcServer.java, v 0.1 2020年07月13日 3:42 PM liuzunfei Exp $
  */
@@ -70,9 +71,15 @@ public abstract class BaseGrpcServer extends BaseRpcServer {
      */
     private final ResourceLoader resourceLoader = new DefaultResourceLoader();
 
+    /**
+     * 接收处理：普通 grpc 普通
+     */
     @Autowired
     private GrpcRequestAcceptor grpcCommonRequestAcceptor;
 
+    /**
+     * 接收处理：流式 grpc 普通
+     */
     @Autowired
     private GrpcBiStreamRequestAcceptor grpcBiStreamRequestAcceptor;
 
@@ -90,6 +97,7 @@ public abstract class BaseGrpcServer extends BaseRpcServer {
      */
     @Override
     public void startServer() throws Exception {
+        // itodo： 待了解
         final MutableHandlerRegistry handlerRegistry = new MutableHandlerRegistry();
         // 添加服务
         addServices(handlerRegistry, new GrpcConnectionInterceptor());
@@ -149,10 +157,15 @@ public abstract class BaseGrpcServer extends BaseRpcServer {
         // 普通请求模式 的服务注册
         // 方法描述符：指出 请求和响应的类型
         final MethodDescriptor<Payload, Payload> unaryPayloadMethod = MethodDescriptor.<Payload, Payload>newBuilder()
+
+                // 设置方法是 一元的
                 .setType(MethodDescriptor.MethodType.UNARY)
+                // 设置完整的方法名称
                 .setFullMethodName(MethodDescriptor.generateFullMethodName(GrpcServerConstants.REQUEST_SERVICE_NAME,
                         GrpcServerConstants.REQUEST_METHOD_NAME))
+                // 设置 请求 编组器
                 .setRequestMarshaller(ProtoUtils.marshaller(Payload.getDefaultInstance()))
+                // 设置 响应 编组器
                 .setResponseMarshaller(ProtoUtils.marshaller(Payload.getDefaultInstance())).build();
 
         final ServerCallHandler<Payload, Payload> payloadHandler = ServerCalls

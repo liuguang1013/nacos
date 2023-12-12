@@ -44,7 +44,13 @@ public class ClientManagerDelegate implements ClientManager {
     private final EphemeralIpPortClientManager ephemeralIpPortClientManager;
     
     private final PersistentIpPortClientManager persistentIpPortClientManager;
-    
+
+    /**
+     * 客户端管理 代理
+     * @param connectionBasedClientManager 基于连接的类型的 客户端管理
+     * @param ephemeralIpPortClientManager 短暂的ip + 端口 类型的 客户端管理
+     * @param persistentIpPortClientManager 持久的 ip + 端口 类型的 客户端管理
+     */
     public ClientManagerDelegate(ConnectionBasedClientManager connectionBasedClientManager,
             EphemeralIpPortClientManager ephemeralIpPortClientManager,
             PersistentIpPortClientManager persistentIpPortClientManager) {

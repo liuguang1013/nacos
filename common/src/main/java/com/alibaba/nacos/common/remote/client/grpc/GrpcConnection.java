@@ -43,6 +43,7 @@ import java.util.concurrent.TimeoutException;
 /**
  * gRPC connection.
  * grpc 连接对象，所有 grpc 请求都是通过 连接 发送
+ * 客户端 gRPC connection 对象
  * @author liuzunfei
  * @version $Id: GrpcConnection.java, v 0.1 2020年08月09日 1:36 PM liuzunfei Exp $
  */
@@ -127,13 +128,17 @@ public class GrpcConnection extends Connection {
         };
     }
 
+    /**
+     * 发送流式 响应
+     * @param response
+     */
     public void sendResponse(Response response) {
         Payload convert = GrpcUtils.convert(response);
         payloadStreamObserver.onNext(convert);
     }
 
     /**
-     * 发送流式
+     * 发送流式 请求
      * @param request
      */
     public void sendRequest(Request request) {

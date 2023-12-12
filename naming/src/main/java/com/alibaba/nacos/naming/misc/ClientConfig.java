@@ -30,7 +30,10 @@ public class ClientConfig extends AbstractDynamicConfig {
     private static final String NAMING_CLIENT = "NamingClient";
     
     private static final ClientConfig INSTANCE = new ClientConfig();
-    
+
+    /**
+     * 默认 3 分钟
+     */
     private long clientExpiredTime = ClientConstants.DEFAULT_CLIENT_EXPIRED_TIME;
     
     private ClientConfig() {

@@ -77,7 +77,7 @@ public class GrpcUtils {
      * @return payload.
      */
     public static Payload convert(Request request) {
-        // 构建元数据：请求类名、IP、请求头
+        // 构建元数据：请求类名、本机IP、请求头
         Metadata newMeta = Metadata.newBuilder().setType(request.getClass().getSimpleName())
                 .setClientIp(NetUtils.localIP()).putAllHeaders(request.getHeaders()).build();
         // 对象转换为 json字节数组
