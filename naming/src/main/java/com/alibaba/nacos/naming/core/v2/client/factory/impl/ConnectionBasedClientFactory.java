@@ -34,10 +34,12 @@ public class ConnectionBasedClientFactory implements ClientFactory<ConnectionBas
     public String getType() {
         return ClientConstants.DEFAULT_FACTORY;
     }
-    
+
     @Override
     public ConnectionBasedClient newClient(String clientId, ClientAttributes attributes) {
         long revision = attributes.getClientAttribute(REVISION, 0);
+        // 创建基于连接的客户端
+        // 这个客户端主要是 用来表示和 tcp 连接的绑定，当tcp 断开连接的时候对象应该被清除
         ConnectionBasedClient connectionBasedClient = new ConnectionBasedClient(clientId, true, revision);
         connectionBasedClient.setAttributes(attributes);
         return connectionBasedClient;

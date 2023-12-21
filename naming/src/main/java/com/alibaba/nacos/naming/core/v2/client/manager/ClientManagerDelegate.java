@@ -78,7 +78,12 @@ public class ClientManagerDelegate implements ClientManager {
     public boolean clientDisconnected(String clientId) {
         return getClientManagerById(clientId).clientDisconnected(clientId);
     }
-    
+
+    /**
+     *
+     * @param clientId client id  grpc 的 context 中获取的连接id
+     * @return
+     */
     @Override
     public Client getClient(String clientId) {
         return getClientManagerById(clientId).getClient(clientId);
@@ -110,9 +115,11 @@ public class ClientManagerDelegate implements ClientManager {
     }
     
     private ClientManager getClientManagerById(String clientId) {
+        // 客户端id 不包含 # 字符就是基于连接的客户端
         if (isConnectionBasedClient(clientId)) {
             return connectionBasedClientManager;
         }
+        // 连接id 字符串以 false 结尾是 持久连接，否则是短暂连接
         return clientId.endsWith(ClientConstants.PERSISTENT_SUFFIX) ? persistentIpPortClientManager : ephemeralIpPortClientManager;
     }
     

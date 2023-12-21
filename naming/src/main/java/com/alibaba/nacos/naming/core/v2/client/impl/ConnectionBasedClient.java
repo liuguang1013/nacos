@@ -22,7 +22,10 @@ import com.alibaba.nacos.naming.misc.ClientConfig;
 /**
  * Nacos naming client based on tcp session.
  *
+ * 基于tcp会话的 Nacos 命名客户端。
+ *
  * <p>The client is bind to the tcp session. When the tcp session disconnect, the client should be clean.
+ * 客户端绑定 tcp 会话。当 tcp 会话断开时，客户端应该被清除
  *
  * @author xiweng.yy
  */
@@ -33,6 +36,9 @@ public class ConnectionBasedClient extends AbstractClient {
     /**
      * {@code true} means this client is directly connect to current server. {@code false} means this client is synced
      * from other server.
+     *
+     * {@code true}表示该客户端直接连接到当前服务器。
+     * {@code false}表示该客户端从其他服务器同步。
      */
     private final boolean isNative;
     

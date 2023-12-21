@@ -46,7 +46,11 @@ import java.util.concurrent.TimeUnit;
  */
 @Component("connectionBasedClientManager")
 public class ConnectionBasedClientManager extends ClientConnectionEventListener implements ClientManager {
-    
+
+    /**
+     * key ConnectionId 连接id
+     * value ConnectionBasedClient 对象
+     */
     private final ConcurrentMap<String, ConnectionBasedClient> clients = new ConcurrentHashMap<>();
     
     public ConnectionBasedClientManager() {
@@ -58,24 +62,38 @@ public class ConnectionBasedClientManager extends ClientConnectionEventListener 
     
     @Override
     public void clientConnected(Connection connect) {
+        // 当 连接的标签中，模块不是 naming 直接返回
+        // 意味着 只有命名服务才是 基于连接的客户端
         if (!RemoteConstants.LABEL_MODULE_NAMING.equals(connect.getMetaInfo().getLabel(RemoteConstants.LABEL_MODULE))) {
             return;
         }
         ClientAttributes attributes = new ClientAttributes();
+        // 设置客户端属性：连接类型是 grpc
         attributes.addClientAttribute(ClientConstants.CONNECTION_TYPE, connect.getMetaInfo().getConnectType());
+        // 设置客户端属性：连接元数据
         attributes.addClientAttribute(ClientConstants.CONNECTION_METADATA, connect.getMetaInfo());
+
         clientConnected(connect.getMetaInfo().getConnectionId(), attributes);
     }
-    
+
+    /**
+     *
+     * @param clientId new client id        客户端 ip
+     * @param attributes client attributes, which can help create client    客户端属性
+     * @return
+     */
     @Override
     public boolean clientConnected(String clientId, ClientAttributes attributes) {
         String type = attributes.getClientAttribute(ClientConstants.CONNECTION_TYPE);
+        // 单例 ClientFactoryHolder 查找客户端工厂类
         ClientFactory clientFactory = ClientFactoryHolder.getInstance().findClientFactory(type);
+        // 工厂类创建客户端
         return clientConnected(clientFactory.newClient(clientId, attributes));
     }
     
     @Override
     public boolean clientConnected(final Client client) {
+        // 向 map 缓存中添加 客户端对象
         clients.computeIfAbsent(client.getClientId(), s -> {
             Loggers.SRV_LOG.info("Client connection {} connect", client.getClientId());
             return (ConnectionBasedClient) client;

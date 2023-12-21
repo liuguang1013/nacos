@@ -26,13 +26,19 @@ import java.util.HashMap;
 
 /**
  * Client factory holder.
- *
+ * 单例
+ * 客户端工厂持有者
  * @author xiweng.yy
  */
 public class ClientFactoryHolder {
     
     private static final ClientFactoryHolder INSTANCE = new ClientFactoryHolder();
-    
+
+    /**
+     * key： ClientConstants 常量类
+     *      default、ephemeralIpPort、persistentIpPort
+     * value： ConnectionBasedClientFactory、EphemeralIpPortClientFactory、PersistentIpPortClientFactory
+     */
     private final HashMap<String, ClientFactory> clientFactories;
     
     private ClientFactoryHolder() {
@@ -53,6 +59,8 @@ public class ClientFactoryHolder {
     
     /**
      * Find target type {@link ClientFactory}.
+     *
+     * 查找客户端工厂，找不到 返回默认的 ConnectionBasedClientFactory
      *
      * @param type target type
      * @return target type {@link ClientFactory}, if not fount, return 'default' client factory.

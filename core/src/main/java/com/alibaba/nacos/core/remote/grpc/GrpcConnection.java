@@ -93,7 +93,7 @@ public class GrpcConnection extends Connection {
     private DefaultRequestFuture sendRequestInner(Request request, RequestCallBack callBack) throws NacosException {
         final String requestId = String.valueOf(PushAckIdGenerator.getNextId());
         request.setRequestId(requestId);
-        
+        // 创建 Future ，通过 Future 获取结果
         DefaultRequestFuture defaultPushFuture = new DefaultRequestFuture(getMetaInfo().getConnectionId(), requestId,
                 callBack, () -> RpcAckCallbackSynchronizer.clearFuture(getMetaInfo().getConnectionId(), requestId));
         // todo： 回调同步器 作用是啥？回调成功后请求请求id及对应的 DefaultRequestFuture
@@ -113,9 +113,10 @@ public class GrpcConnection extends Connection {
      */
     @Override
     public Response request(Request request, long timeoutMills) throws NacosException {
+        //  使用 StreamObserver#onNext() 发送请求
         DefaultRequestFuture pushFuture = sendRequestInner(request, null);
         try {
-            // 获取
+            // 获取结果，超时抛出异常，但并未处理异常
             return pushFuture.get(timeoutMills);
         } catch (Exception e) {
             throw new NacosException(NacosException.SERVER_ERROR, e);

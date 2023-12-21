@@ -43,7 +43,7 @@ public class ClientConnectionEventListenerRegistry {
      * @param connection connection that new created.
      */
     public void notifyClientConnected(final Connection connection) {
-        
+
         for (ClientConnectionEventListener clientConnectionEventListener : clientConnectionEventListeners) {
             try {
                 clientConnectionEventListener.clientConnected(connection);
@@ -77,6 +77,8 @@ public class ClientConnectionEventListenerRegistry {
     
     /**
      * register ClientConnectionEventListener.
+     * 注册 客户端连接事件的监听者
+     *  ClientConnectionEventListener 抽象类的实现类，对象初始化的时候，调用该方法
      *
      * @param listener listener.
      */

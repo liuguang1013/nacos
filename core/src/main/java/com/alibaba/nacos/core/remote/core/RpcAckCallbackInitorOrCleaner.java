@@ -32,11 +32,13 @@ public class RpcAckCallbackInitorOrCleaner extends ClientConnectionEventListener
     
     @Override
     public void clientConnected(Connection connect) {
+        // Rpc Ack回调同步器 初始化该连接的 缓存容量
         RpcAckCallbackSynchronizer.initContextIfNecessary(connect.getMetaInfo().getConnectionId());
     }
     
     @Override
     public void clientDisConnected(Connection connect) {
+        // Rpc Ack回调同步器 清除连接的 请求 ack 信息
         RpcAckCallbackSynchronizer.clearContext(connect.getMetaInfo().getConnectionId());
     }
 }

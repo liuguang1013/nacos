@@ -58,7 +58,8 @@ public class ConnectionManager {
 
     /**
      * 记录客户端，连接数量
-     * key： connectionId
+     * key： 客户端 ip
+     * value： 连接的数量 1
      */
     private Map<String, AtomicInteger> connectionForClientIp = new ConcurrentHashMap<>(16);
 
@@ -126,6 +127,9 @@ public class ConnectionManager {
             connectionForClientIp.get(clientIp).getAndIncrement();
 
             // 通知 一个新的客户端连接： 遍历每个 clientConnectionEvent 监听者
+            // 遍历 3个客户端连接监听者：ConfigConnectionEventListener 什么也不做
+            //                      ConnectionBasedClientManager 创建 和 tcp 连接绑定的 ConnectionBasedClient对象
+            //                      RpcAckCallbackSynchronizer 初始化缓存的map 容量
             clientConnectionEventListenerRegistry.notifyClientConnected(connection);
             
             LOGGER.info("new connection registered successfully, connectionId = {},connection={} ", connectionId,

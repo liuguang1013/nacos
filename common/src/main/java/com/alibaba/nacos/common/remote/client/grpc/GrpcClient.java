@@ -377,9 +377,13 @@ public abstract class GrpcClient extends RpcClient {
                 // 发送一个设置请求，是流式请求
                 ConnectionSetupRequest conSetupRequest = new ConnectionSetupRequest();
                 conSetupRequest.setClientVersion(VersionUtils.getFullClientVersion());
+                //  标签：source：sdk、module：naming
                 conSetupRequest.setLabels(super.getLabels());
+                // clientWork 中设置， nacos 客户端能力：远程、配置能力
                 conSetupRequest.setAbilities(super.clientAbilities);
+                // clientWork 中设置，实际是 namespace 的 值
                 conSetupRequest.setTenant(super.getTenant());
+                // 实际上是调用 payloadStreamObserver 的 onNext() 方法
                 grpcConn.sendRequest(conSetupRequest);
 
                 //wait to register connection setup

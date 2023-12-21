@@ -106,10 +106,11 @@ public class RpcAckCallbackSynchronizer {
     
     /**
      * clear context of connectionId.
-     *
+     * itodo：：发现注解有问题  应该是 init
      * @param connectionId connectionId
      */
     public static Map<String, DefaultRequestFuture> initContextIfNecessary(String connectionId) {
+        // 同步器缓存 中不包含 该连接 进行初始化
         if (!CALLBACK_CONTEXT.containsKey(connectionId)) {
             Map<String, DefaultRequestFuture> context = new HashMap<>(128);
             Map<String, DefaultRequestFuture> stringDefaultRequestFutureMap = CALLBACK_CONTEXT

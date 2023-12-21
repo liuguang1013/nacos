@@ -1121,7 +1121,7 @@ public abstract class RpcClient implements Closeable {
     }
 
     /**
-     * clientWork 中设置，实际是 namespace
+     * clientWork 中设置，实际是 namespace 的 值
      * @param tenant
      */
     public void setTenant(String tenant) {

@@ -92,7 +92,7 @@ public class NamingGrpcClientProxy extends AbstractNamingClientProxy {
         this.uuid = UUID.randomUUID().toString();
         // 请求超时时间，默认为 -1
         this.requestTimeout = Long.parseLong(properties.getProperty(CommonParams.NAMING_REQUEST_TIMEOUT, "-1"));
-        // 标签：sdk、naming
+        // 标签：source：sdk、module：naming
         Map<String, String> labels = new HashMap<>();
         labels.put(RemoteConstants.LABEL_SOURCE, RemoteConstants.LABEL_SOURCE_SDK);
         labels.put(RemoteConstants.LABEL_MODULE, RemoteConstants.LABEL_MODULE_NAMING);
