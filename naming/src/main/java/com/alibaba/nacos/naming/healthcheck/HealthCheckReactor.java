@@ -63,7 +63,7 @@ public class HealthCheckReactor {
     
     /**
      * Cancel client beat check task.
-     *
+     * 取消客户端心跳检查任务
      * @param task client beat check task
      */
     public static void cancelCheck(BeatCheckTask task) {

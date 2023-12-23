@@ -59,6 +59,7 @@ public class ProtocolManager extends MemberChangeListener implements DisposableB
     private Set<Member> oldMembers;
     
     public ProtocolManager(ServerMemberManager memberManager) {
+
         this.memberManager = memberManager;
         NotifyCenter.registerSubscriber(this);
     }

@@ -53,6 +53,7 @@ public class ClientEvent extends Event {
     
     /**
      * Client disconnect event. Happened when {@code Client} disconnect with server.
+     * 客户端断开连接事件。当 与服务端断开连接的时候发布
      */
     public static class ClientDisconnectEvent extends ClientEvent {
         

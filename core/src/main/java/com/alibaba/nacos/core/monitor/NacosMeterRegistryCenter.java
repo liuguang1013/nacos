@@ -48,7 +48,10 @@ public final class NacosMeterRegistryCenter {
     public static final String TOPN_CONFIG_CHANGE_REGISTRY = "TOPN_CONFIG_CHANGE_REGISTRY";
     
     public static final String TOPN_SERVICE_CHANGE_REGISTRY = "TOPN_SERVICE_CHANGE_REGISTRY";
-    
+
+    /**
+     *
+     */
     private static final ConcurrentHashMap<String, CompositeMeterRegistry> METER_REGISTRIES = new ConcurrentHashMap<>();
     
     private static PrometheusMeterRegistry PROMETHEUS_METER_REGISTRY = null;

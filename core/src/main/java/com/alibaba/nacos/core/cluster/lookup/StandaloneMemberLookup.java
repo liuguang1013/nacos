@@ -33,6 +33,7 @@ public class StandaloneMemberLookup extends AbstractMemberLookup {
     @Override
     public void doStart() {
         String url = EnvUtil.getLocalAddress();
+        // 寻址后 将 Member 进行合并
         afterLookup(MemberUtil.readServerConf(Collections.singletonList(url)));
     }
     

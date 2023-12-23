@@ -180,6 +180,7 @@ public abstract class AbstractClient implements Client {
     @Override
     public void release() {
         Collection<InstancePublishInfo> instancePublishInfos = publishers.values();
+        // 减少 指标监控的数据
         for (InstancePublishInfo instancePublishInfo : instancePublishInfos) {
             if (instancePublishInfo instanceof BatchInstancePublishInfo) {
                 MetricsMonitor.decrementIpCountWithBatchRegister(instancePublishInfo);

@@ -103,6 +103,7 @@ public class IpPortBasedClient extends AbstractClient {
     public void release() {
         super.release();
         if (ephemeral) {
+            // 取消健康检查
             HealthCheckReactor.cancelCheck(beatCheckTask);
         } else {
             healthCheckTaskV2.setCancelled(true);

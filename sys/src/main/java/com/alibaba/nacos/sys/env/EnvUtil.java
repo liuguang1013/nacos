@@ -235,6 +235,7 @@ public class EnvUtil {
     
     /**
      * Standalone mode or not.
+     * 判断是否是 单机模式
      */
     public static boolean getStandaloneMode() {
         if (Objects.isNull(isStandalone)) {
@@ -261,11 +262,13 @@ public class EnvUtil {
         }
         return nacosTmpDir;
     }
-    
+
+
     public static String getNacosHome() {
         if (StringUtils.isBlank(nacosHomePath)) {
             String nacosHome = System.getProperty(NACOS_HOME_KEY);
             if (StringUtils.isBlank(nacosHome)) {
+                // ${user.home}/nacos
                 nacosHome = Paths.get(System.getProperty(NACOS_HOME_PROPERTY), NACOS_HOME_ADDITIONAL_FILEPATH)
                         .toString();
             }
@@ -319,6 +322,7 @@ public class EnvUtil {
     }
     
     public static String getClusterConfFilePath() {
+
         return Paths.get(getNacosHome(), DEFAULT_ADDITIONAL_PATH, DEFAULT_ADDITIONAL_FILE).toString();
     }
     
@@ -382,7 +386,10 @@ public class EnvUtil {
     public static void writeClusterConf(String content) throws IOException {
         DiskUtils.writeFile(new File(getClusterConfFilePath()), content.getBytes(StandardCharsets.UTF_8), false);
     }
-    
+
+    /**
+     * 在环境中获取： nacos.member.list 参数
+     */
     public static String getMemberList() {
         String val;
         if (environment == null) {

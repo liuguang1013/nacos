@@ -38,16 +38,19 @@ public enum NodeState {
     
     /**
      * Node may Crash.
+     * 节点可能崩溃
      */
     SUSPICIOUS,
     
     /**
      * Node is out of service, something abnormal happened.
+     * 节点停止服务，发生异常。
      */
     DOWN,
     
     /**
      * The Node is isolated.
+     * 节点被隔离
      */
     ISOLATION,
     

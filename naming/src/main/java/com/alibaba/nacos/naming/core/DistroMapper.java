@@ -50,7 +50,12 @@ public class DistroMapper extends MemberChangeListener {
     private final SwitchDomain switchDomain;
     
     private final ServerMemberManager memberManager;
-    
+
+    /**
+     * 唯一构造器
+     * @param memberManager 成员管理者
+     * @param switchDomain 开关对象
+     */
     public DistroMapper(ServerMemberManager memberManager, SwitchDomain switchDomain) {
         this.memberManager = memberManager;
         this.switchDomain = switchDomain;
@@ -71,6 +76,7 @@ public class DistroMapper extends MemberChangeListener {
     
     /**
      * Judge whether current server is responsible for input tag.
+     * 判断当前服务器是否负责输入标签。
      *
      * @param responsibleTag responsible tag, serviceName for v1 and ip:port for v2
      * @return true if input service is response, otherwise false
@@ -129,10 +135,15 @@ public class DistroMapper extends MemberChangeListener {
     public void onEvent(MembersChangeEvent event) {
         // Here, the node list must be sorted to ensure that all nacos-server's
         // node list is in the same order
+        // 这里，必须对节点列表进行排序，以确保所有 nacos-server 的节点列表的顺序相同
+
+        // 过滤节点，只要 在线 或者 可能崩溃 的节点
         List<String> list = MemberUtil.simpleMembers(MemberUtil.selectTargetMembers(event.getMembers(),
                 member -> NodeState.UP.equals(member.getState()) || NodeState.SUSPICIOUS.equals(member.getState())));
+        // 排序
         Collections.sort(list);
         Collection<String> old = healthyList;
+        // 健康节点
         healthyList = Collections.unmodifiableList(list);
         Loggers.SRV_LOG.info("[NACOS-DISTRO] healthy server list changed, old: {}, new: {}", old, healthyList);
     }

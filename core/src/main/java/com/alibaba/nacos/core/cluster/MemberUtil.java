@@ -70,6 +70,7 @@ public class MemberUtil {
     
     /**
      * parse ip:port to member.
+     * 创建 member 对象
      *
      * @param member ip:port
      * @return {@link Member}
@@ -87,11 +88,13 @@ public class MemberUtil {
             address = info[0];
             port = Integer.parseInt(info[1]);
         }
-        
+        // 创建 Member 对象
         Member target = Member.builder().ip(address).port(port).state(NodeState.UP).build();
         Map<String, Object> extendInfo = new HashMap<>(4);
         // The Raft Port information needs to be set by default
+        // 默认的 raft 端口  7848
         extendInfo.put(MemberMetaDataConstants.RAFT_PORT, String.valueOf(calculateRaftPort(target)));
+        // 准备升级
         extendInfo.put(MemberMetaDataConstants.READY_TO_UPGRADE, true);
         target.setExtendInfo(extendInfo);
         return target;

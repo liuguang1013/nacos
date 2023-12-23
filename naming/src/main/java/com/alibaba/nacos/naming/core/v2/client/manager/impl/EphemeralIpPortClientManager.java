@@ -44,7 +44,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * The manager of {@code IpPortBasedClient} and ephemeral.
- *
+ * 基于 ip 和端口的 manager 并且会短暂的
  * @author xiweng.yy
  */
 @DependsOn("clientServiceIndexesManager")
@@ -56,11 +56,18 @@ public class EphemeralIpPortClientManager implements ClientManager {
     private final DistroMapper distroMapper;
     
     private final ClientFactory<IpPortBasedClient> clientFactory;
-    
+
+    /**
+     * 唯一构造器
+     * @param distroMapper distro 协议 mapper
+     * @param switchDomain 开关对象
+     */
     public EphemeralIpPortClientManager(DistroMapper distroMapper, SwitchDomain switchDomain) {
         this.distroMapper = distroMapper;
+        // 定时清理 客户端，初始无延迟，5秒执行一次
         GlobalExecutor.scheduleExpiredClientCleaner(new ExpiredClientCleaner(this, switchDomain), 0,
                 Constants.DEFAULT_HEART_BEAT_INTERVAL, TimeUnit.MILLISECONDS);
+        // 执行 客户端工厂 EphemeralIpPortClientFactory
         clientFactory = ClientFactoryHolder.getInstance().findClientFactory(ClientConstants.EPHEMERAL_IP_PORT);
     }
     
@@ -92,7 +99,9 @@ public class EphemeralIpPortClientManager implements ClientManager {
         if (null == client) {
             return true;
         }
+        // 通知中心发布 客户端事件，客户端断开连接事件
         NotifyCenter.publishEvent(new ClientEvent.ClientDisconnectEvent(client, isResponsibleClient(client)));
+        // 客户端释放：抽象父类中 减少监控指标数量、取消健康检查
         client.release();
         return true;
     }
@@ -111,7 +120,12 @@ public class EphemeralIpPortClientManager implements ClientManager {
     public Collection<String> allClientId() {
         return clients.keySet();
     }
-    
+
+    /**
+     * 判断是否该服务器是否负责客户端
+     * @param client client
+     * @return
+     */
     @Override
     public boolean isResponsibleClient(Client client) {
         if (client instanceof IpPortBasedClient) {
@@ -151,10 +165,12 @@ public class EphemeralIpPortClientManager implements ClientManager {
         
         @Override
         public void run() {
+            // 遍历各个客户端，判断是否过期
             long currentTime = System.currentTimeMillis();
             for (String each : clientManager.allClientId()) {
                 IpPortBasedClient client = (IpPortBasedClient) clientManager.getClient(each);
                 if (null != client && isExpireClient(currentTime, client)) {
+                    // 发布客户端断开连接事件、客户端取消心跳检查
                     clientManager.clientDisconnected(each);
                 }
             }
@@ -164,14 +180,17 @@ public class EphemeralIpPortClientManager implements ClientManager {
             long noUpdatedTime = currentTime - client.getLastUpdatedTime();
             return client.isEphemeral() && (
                     isExpirePublishedClient(noUpdatedTime, client) && isExpireSubscriberClient(noUpdatedTime, client)
+                            // 超过默认的超时时间 3分钟
                             || noUpdatedTime > ClientConfig.getInstance().getClientExpiredTime());
         }
         
         private boolean isExpirePublishedClient(long noUpdatedTime, IpPortBasedClient client) {
+            //  发布者服务为空 并且 超过默认的超时时间 30s
             return client.getAllPublishedService().isEmpty() && noUpdatedTime > Constants.DEFAULT_IP_DELETE_TIMEOUT;
         }
         
         private boolean isExpireSubscriberClient(long noUpdatedTime, IpPortBasedClient client) {
+            //  订阅者服务为空 并且 超过默认的超时时间 10s
             return client.getAllSubscribeService().isEmpty() || noUpdatedTime > switchDomain.getDefaultPushCacheMillis();
         }
     }

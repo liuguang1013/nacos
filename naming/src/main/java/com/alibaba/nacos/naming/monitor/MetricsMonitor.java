@@ -34,6 +34,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Metrics Monitor.
+ * 指标监控器
  *
  * @author Nacos
  */
@@ -93,8 +94,10 @@ public class MetricsMonitor {
     private final TopnCounterMetricsContainer serviceChangeCount = new TopnCounterMetricsContainer();
     
     private MetricsMonitor() {
+        // 反射获取 MetricsMonitor 类的属性
         for (Field each : MetricsMonitor.class.getDeclaredFields()) {
             if (Number.class.isAssignableFrom(each.getType())) {
+                // 设置 私有属性可访问操作
                 each.setAccessible(true);
                 try {
                     registerToMetrics(each.getName(), (Number) each.get(this));

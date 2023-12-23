@@ -35,6 +35,8 @@ public class ServerAbilityInitializerHolder {
     
     private ServerAbilityInitializerHolder() {
         initializers = new HashSet<>();
+        // 在 本项目 resource 下的 services 文件夹中 指明 服务端能力
+        // com.alibaba.nacos.core.ability.RemoteAbilityInitializer 支持远程连接
         for (ServerAbilityInitializer each : NacosServiceLoader.load(ServerAbilityInitializer.class)) {
             Loggers.CORE.info("Load {} for ServerAbilityInitializer", each.getClass().getCanonicalName());
             initializers.add(each);

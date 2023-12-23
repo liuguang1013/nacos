@@ -48,7 +48,7 @@ import static com.alibaba.nacos.sys.env.Constants.USE_ONLY_SITE_INTERFACES;
 
 /**
  * Network card operation tool class.
- *
+ * 网卡操作工具类。
  * @author Nacos
  */
 public class InetUtils {
@@ -69,8 +69,9 @@ public class InetUtils {
     private static boolean preferHostnameOverIP = false;
     
     static {
+        // 向注册中心 IPChangeEvent 事件
         NotifyCenter.registerToSharePublisher(IPChangeEvent.class);
-        
+        // itodo： 什么属性？
         useOnlySiteLocalInterface = Boolean.parseBoolean(EnvUtil.getProperty(USE_ONLY_SITE_INTERFACES));
         
         List<String> networks = EnvUtil.getPropertyList(Constants.PREFERRED_NETWORKS);
@@ -78,11 +79,13 @@ public class InetUtils {
         
         List<String> interfaces = EnvUtil.getPropertyList(Constants.IGNORED_INTERFACES);
         IGNORED_INTERFACES.addAll(interfaces);
-        
+
+        // 刷新IP地址
         refreshIp();
-        
+        // 30s
         final long delayMs = Long.getLong(Constants.AUTO_REFRESH_TIME, 30_000L);
-        
+        // 延迟 30s，之后每 30s  刷新ip地址
+        // itodo： 为什么要刷新？
         INET_AUTO_REFRESH_EXECUTOR.scheduleAtFixedRate(() -> {
             try {
                 InetUtils.refreshIp();
@@ -96,13 +99,15 @@ public class InetUtils {
      * refresh ip address.
      */
     private static void refreshIp() {
-        
+        // 获取 nacos 地址
         String tmpSelfIp = getNacosIp();
-        
+
+        // 未从环境中获取到 ip ，使用 Hostname 覆盖 ip
         if (StringUtils.isBlank(tmpSelfIp)) {
             tmpSelfIp = getPreferHostnameOverIP();
         }
-        
+
+        // 为空，查找第一个非环回地址
         if (StringUtils.isBlank(tmpSelfIp)) {
             tmpSelfIp = Objects.requireNonNull(findFirstNonLoopbackAddress()).getHostAddress();
         }
@@ -115,6 +120,7 @@ public class InetUtils {
                         + InternetAddressUtil.IPV6_END_MARK;
             }
         }
+        // 当 ip 地址发生变化，发布 IPChangeEvent 事件
         if (!Objects.equals(selfIP, tmpSelfIp) && Objects.nonNull(selfIP)) {
             IPChangeEvent event = new IPChangeEvent();
             event.setOldIP(selfIP);
@@ -126,8 +132,13 @@ public class InetUtils {
     
     /**
      * Get ip address from environment
+     *
      * System property nacos.server.ip
      * Spring property nacos.inetutils.ip-address.
+     *
+     * 从环境中获取ip地址
+     * 系统属性： nacos.server.ip
+     * spring 属性： nacos.inetutils.ip-address.
      *
      * @return ip address
      */

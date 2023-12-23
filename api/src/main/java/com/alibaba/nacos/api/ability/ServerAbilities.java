@@ -36,6 +36,7 @@ public class ServerAbilities implements Serializable {
      * 服务端 远程能力，代码中设定 默认使用 grpc
      * supportRemoteConnection
      * grpcReportEnabled
+     *
      */
     private ServerRemoteAbility remoteAbility = new ServerRemoteAbility();
 

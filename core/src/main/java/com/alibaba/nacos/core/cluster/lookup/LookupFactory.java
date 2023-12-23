@@ -49,14 +49,22 @@ public final class LookupFactory {
      * @throws NacosException NacosException
      */
     public static MemberLookup createLookUp(ServerMemberManager memberManager) throws NacosException {
+        // 集群模式：文件寻址、服务端寻址
         if (!EnvUtil.getStandaloneMode()) {
+            // 环境变量中，获取查找类型 ，
             String lookupType = EnvUtil.getProperty(LOOKUP_MODE_TYPE);
+            // 判断寻址类型
             LookupType type = chooseLookup(lookupType);
+
             LOOK_UP = find(type);
+
             currentLookupType = type;
-        } else {
+        }
+        // 单机模式
+        else {
             LOOK_UP = new StandaloneMemberLookup();
         }
+        // 注入成员管理器
         LOOK_UP.injectMemberManager(memberManager);
         Loggers.CLUSTER.info("Current addressing mode selection : {}", LOOK_UP.getClass().getSimpleName());
         return LOOK_UP;
@@ -94,10 +102,12 @@ public final class LookupFactory {
     }
     
     private static MemberLookup find(LookupType type) {
+        // 文件寻址
         if (LookupType.FILE_CONFIG.equals(type)) {
             LOOK_UP = new FileConfigMemberLookup();
             return LOOK_UP;
         }
+        // 服务端寻址
         if (LookupType.ADDRESS_SERVER.equals(type)) {
             LOOK_UP = new AddressServerMemberLookup();
             return LOOK_UP;
@@ -105,14 +115,21 @@ public final class LookupFactory {
         // unpossible to run here
         throw new IllegalArgumentException();
     }
-    
+
+    /**
+     * 判断 使用那种寻址模式
+     * @param lookupType
+     * @return
+     */
     private static LookupType chooseLookup(String lookupType) {
+        // 配置文件中 配置
         if (StringUtils.isNotBlank(lookupType)) {
             LookupType type = LookupType.sourceOf(lookupType);
             if (Objects.nonNull(type)) {
                 return type;
             }
         }
+        // 配置文件中没配置 寻址类型   ${user.home}/nacos/conf/cluster.conf
         File file = new File(EnvUtil.getClusterConfFilePath());
         if (file.exists() || StringUtils.isNotBlank(EnvUtil.getMemberList())) {
             return LookupType.FILE_CONFIG;
@@ -132,11 +149,13 @@ public final class LookupFactory {
         
         /**
          * File addressing mode.
+         * 文件寻址模式。
          */
         FILE_CONFIG(1, "file"),
         
         /**
          * Address server addressing mode.
+         * 地址服务器寻址模式。
          */
         ADDRESS_SERVER(2, "address-server");
         
