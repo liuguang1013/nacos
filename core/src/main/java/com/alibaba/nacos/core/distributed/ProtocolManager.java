@@ -40,6 +40,8 @@ import java.util.Set;
 /**
  * Conformance protocol management, responsible for managing the lifecycle of conformance protocols in Nacos.
  *
+ * 一致性协议管理，负责管理naco中一致性协议的生命周期。
+ *
  * @author <a href="mailto:liaochuntao@live.com">liaochuntao</a>
  */
 @SuppressWarnings("all")
@@ -69,7 +71,12 @@ public class ProtocolManager extends MemberChangeListener implements DisposableB
         members.forEach(member -> nodes.add(member.getAddress()));
         return nodes;
     }
-    
+
+    /**
+     * 端口端口号替换为 raft 协议端口号 7080
+     * @param members
+     * @return
+     */
     public static Set<String> toCPMembersInfo(Collection<Member> members) {
         Set<String> nodes = new HashSet<>();
         members.forEach(member -> {
@@ -155,6 +162,11 @@ public class ProtocolManager extends MemberChangeListener implements DisposableB
         // and we use a single thread pool to inform the consistency layer of node changes,
         // to avoid multiple tasks simultaneously carrying out the consistency layer of
         // node changes operation
+
+        // 节点更改事件的顺序非常重要。
+        // 例如，节点变更事件A发生在T1时刻，节点变更事件B发生在一段时间后的T2时刻。(t1 < t2)
+        // 不同协议之间的节点变更事件不应该互相阻塞。
+        // 并且我们使用单个线程池通知一致性层节点变更，避免了多个任务同时进行一致性层节点变更操作
         if (Objects.nonNull(apProtocol)) {
             ProtocolExecutor.apMemberChange(() -> apProtocol.memberChange(toAPMembersInfo(event.getMembers())));
         }

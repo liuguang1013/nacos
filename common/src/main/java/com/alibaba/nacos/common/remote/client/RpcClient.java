@@ -492,11 +492,14 @@ public abstract class RpcClient implements Closeable {
     @Override
     public void shutdown() throws NacosException {
         LOGGER.info("Shutdown rpc client, set status to shutdown");
+        // 设置客户端状态为 关闭
         rpcClientStatus.set(RpcClientStatus.SHUTDOWN);
         LOGGER.info("Shutdown client event executor " + clientEventExecutor);
+        // 关闭 处理心跳健康检查的线程
         if (clientEventExecutor != null) {
             clientEventExecutor.shutdownNow();
         }
+        // 关闭连接
         closeConnection(currentConnection);
     }
     

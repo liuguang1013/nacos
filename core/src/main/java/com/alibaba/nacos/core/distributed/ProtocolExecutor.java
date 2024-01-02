@@ -23,6 +23,7 @@ import java.util.concurrent.ExecutorService;
 
 /**
  * ProtocolExecutor.
+ * 协议线程池
  *
  * @author <a href="mailto:liaochuntao@live.com">liaochuntao</a>
  */

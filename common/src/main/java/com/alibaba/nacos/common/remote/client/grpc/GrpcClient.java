@@ -156,7 +156,9 @@ public abstract class GrpcClient extends RpcClient {
 
     @Override
     public void shutdown() throws NacosException {
+        // 调用父类方法
         super.shutdown();
+        // 关闭 grpc 线程池
         if (grpcExecutor != null) {
             LOGGER.info("Shutdown grpc executor " + grpcExecutor);
             grpcExecutor.shutdown();

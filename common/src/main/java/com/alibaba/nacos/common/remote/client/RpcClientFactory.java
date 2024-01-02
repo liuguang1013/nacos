@@ -79,6 +79,9 @@ public class RpcClientFactory {
         return createClient(clientName, connectionType, null, null, labels);
     }
 
+    /**
+     * namingService 启动，创建服务端的 grpc 客户端时，使用
+     */
     public static RpcClient createClient(String clientName, ConnectionType connectionType, Map<String, String> labels,
                                          RpcClientTlsConfig tlsConfig) {
         return createClient(clientName, connectionType, null, null, labels, tlsConfig);
@@ -140,6 +143,7 @@ public class RpcClientFactory {
 
     /**
      * create a rpc client.
+     * 创建服务端之间 grc 通信的客户端时候使用
      *
      * @param clientName         client name.
      * @param connectionType     client type.

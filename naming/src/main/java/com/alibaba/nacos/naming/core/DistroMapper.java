@@ -36,6 +36,8 @@ import java.util.List;
 
 /**
  * Distro mapper, judge which server response input service.
+ * Distro 映射
+ * 判断出服务端 负责 响应哪些服务
  *
  * @author nkorange
  */

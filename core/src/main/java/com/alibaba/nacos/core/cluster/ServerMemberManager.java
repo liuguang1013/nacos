@@ -231,6 +231,8 @@ public class ServerMemberManager implements ApplicationListener<WebServerInitial
         // Register node change events
 
         // 注册 MembersChangeEvent 发布者
+        // MembersChangeEvent.class 不是 slowEvent ，会有单独的 EventPublisher ，单线程处理任务
+        // 因为对于服务端成员的改变，是有顺序要求的，单线程保障了先后顺序
         NotifyCenter.registerToPublisher(MembersChangeEvent.class,
                 EnvUtil.getProperty(MEMBER_CHANGE_EVENT_QUEUE_SIZE_PROPERTY, Integer.class,
                         DEFAULT_MEMBER_CHANGE_EVENT_QUEUE_SIZE));
@@ -395,7 +397,13 @@ public class ServerMemberManager implements ApplicationListener<WebServerInitial
         members.remove(self);
         return members;
     }
-    
+
+    /**
+     * 合并成员
+     *
+     * @param members
+     * @return
+     */
     synchronized boolean memberChange(Collection<Member> members) {
         
         if (members == null || members.isEmpty()) {

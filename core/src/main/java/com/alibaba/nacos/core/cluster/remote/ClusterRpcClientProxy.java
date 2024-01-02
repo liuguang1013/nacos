@@ -48,6 +48,7 @@ import static com.alibaba.nacos.api.exception.NacosException.CLIENT_INVALID_PARA
 
 /**
  * cluster rpc client proxy.
+ * 集群客户端代理
  *
  * @author liuzunfei
  * @version $Id: ClusterRpcClientProxy.java, v 0.1 2020年08月11日 2:11 PM liuzunfei Exp $
@@ -62,13 +63,18 @@ public class ClusterRpcClientProxy extends MemberChangeListener {
     
     /**
      * init after constructor.
+     * 初始化方法
      */
     @PostConstruct
     public void init() {
         try {
+            // 订阅 集群成员改变事件
             NotifyCenter.registerSubscriber(this);
+            // 获取集群所有成员
             List<Member> members = serverMemberManager.allMembersWithoutSelf();
+            // 刷新
             refresh(members);
+
             Loggers.CLUSTER
                     .info("[ClusterRpcClientProxy] success to refresh cluster rpc client on start up,members ={} ",
                             members);
@@ -80,24 +86,31 @@ public class ClusterRpcClientProxy extends MemberChangeListener {
     
     /**
      * init cluster rpc clients.
+     * 初始化集群 rpc 客户端
      *
      * @param members cluster server list member list.
      */
     private void refresh(List<Member> members) throws NacosException {
         
         //ensure to create client of new members
+        // 确保创建新成员客户端，
+        // 和其他每个服务端都连接
         for (Member member : members) {
             createRpcClientAndStart(member, ConnectionType.GRPC);
         }
         
         //shutdown and remove old members.
+        // 获取所有客户端连接
         Set<Map.Entry<String, RpcClient>> allClientEntrys = RpcClientFactory.getAllClientEntries();
         Iterator<Map.Entry<String, RpcClient>> iterator = allClientEntrys.iterator();
+        // 获取新 客户端对象的 key
         List<String> newMemberKeys = members.stream().map(this::memberClientKey).collect(Collectors.toList());
+        // 遍历 旧客户端对象，不在新客户端列表中的关闭，移除缓存
         while (iterator.hasNext()) {
             Map.Entry<String, RpcClient> next1 = iterator.next();
             if (next1.getKey().startsWith("Cluster-") && !newMemberKeys.contains(next1.getKey())) {
                 Loggers.CLUSTER.info("member leave,destroy client of member - > : {}", next1.getKey());
+                // 关闭客户端
                 RpcClientFactory.getClient(next1.getKey()).shutdown();
                 iterator.remove();
             }
@@ -111,15 +124,21 @@ public class ClusterRpcClientProxy extends MemberChangeListener {
     
     private void createRpcClientAndStart(Member member, ConnectionType type) throws NacosException {
         Map<String, String> labels = new HashMap<>(2);
+        // 加入标签： source  cluster
         labels.put(RemoteConstants.LABEL_SOURCE, RemoteConstants.LABEL_SOURCE_CLUSTER);
+        // Cluster-ip+端口
         String memberClientKey = memberClientKey(member);
+        // 创建服务端集群间，grpc 客户端，端口 9849
         RpcClient client = buildRpcClient(type, labels, memberClientKey);
+
         if (!client.getConnectionType().equals(type)) {
             Loggers.CLUSTER.info("connection type changed,destroy client of member - > : {}", member);
             RpcClientFactory.destroyClient(memberClientKey);
+            // itodo： 为社么此处再次重新创建？
             client = buildRpcClient(type, labels, memberClientKey);
         }
-        
+
+        // 判断客户端 是否为初次创建，等待初始化，此处的判断，主要是控制只在初次的时候调用
         if (client.isWaitInitiated()) {
             Loggers.CLUSTER.info("start a new rpc client to member - > : {}", member);
             
@@ -147,6 +166,8 @@ public class ClusterRpcClientProxy extends MemberChangeListener {
     
     /**
      * Using {@link EnvUtil#getAvailableProcessors(int)} to build cluster clients' grpc thread pool.
+     *
+     * 通过工厂类创建 grpc 的客户端
      */
     private RpcClient buildRpcClient(ConnectionType type, Map<String, String> labels, String memberClientKey) {
         RpcClient clusterClient = RpcClientFactory
@@ -218,6 +239,7 @@ public class ClusterRpcClientProxy extends MemberChangeListener {
     public void onEvent(MembersChangeEvent event) {
         try {
             List<Member> members = serverMemberManager.allMembersWithoutSelf();
+            // 刷新服务端成员， 创建或者销毁 集群间客户端对象
             refresh(members);
         } catch (NacosException e) {
             Loggers.CLUSTER.warn("[serverlist] fail to refresh cluster rpc client, event:{}, msg: {} ", event, e.getMessage());
