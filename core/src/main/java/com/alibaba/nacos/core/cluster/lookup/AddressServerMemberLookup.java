@@ -95,6 +95,7 @@ public class AddressServerMemberLookup extends AbstractMemberLookup {
     
     @Override
     public void doStart() throws NacosException {
+        // 最大失败次数，默认 12
         this.maxFailCount = Integer.parseInt(EnvUtil.getProperty(HEALTH_CHECK_FAIL_COUNT_PROPERTY, DEFAULT_HEALTH_CHECK_FAIL_COUNT));
         initAddressSys();
         run();
@@ -106,24 +107,28 @@ public class AddressServerMemberLookup extends AbstractMemberLookup {
     }
     
     private void initAddressSys() {
+        // 获取 域名
         String envDomainName = System.getenv(ADDRESS_SERVER_DOMAIN_ENV);
         if (StringUtils.isBlank(envDomainName)) {
             domainName = EnvUtil.getProperty(ADDRESS_SERVER_DOMAIN_PROPERTY, DEFAULT_SERVER_DOMAIN);
         } else {
             domainName = envDomainName;
         }
+        // 获取端口号
         String envAddressPort = System.getenv(ADDRESS_SERVER_PORT_ENV);
         if (StringUtils.isBlank(envAddressPort)) {
             addressPort = EnvUtil.getProperty(ADDRESS_SERVER_PORT_PROPERTY, DEFAULT_SERVER_POINT);
         } else {
             addressPort = envAddressPort;
         }
+        // 获取 url 地址
         String envAddressUrl = System.getenv(ADDRESS_SERVER_URL_ENV);
         if (StringUtils.isBlank(envAddressUrl)) {
             addressUrl = EnvUtil.getProperty(ADDRESS_SERVER_URL_PROPERTY, EnvUtil.getContextPath() + "/" + "serverlist");
         } else {
             addressUrl = envAddressUrl;
         }
+
         addressServerUrl = HTTP_PREFIX + domainName + ":" + addressPort + addressUrl;
         envIdUrl = HTTP_PREFIX + domainName + ":" + addressPort + "/env";
         
@@ -137,9 +142,11 @@ public class AddressServerMemberLookup extends AbstractMemberLookup {
         // Repeat three times, successfully jump out
         boolean success = false;
         Throwable ex = null;
+        // 最大重试次数 5次
         int maxRetry = EnvUtil.getProperty(ADDRESS_SERVER_RETRY_PROPERTY, Integer.class, DEFAULT_SERVER_RETRY_TIME);
         for (int i = 0; i < maxRetry; i++) {
             try {
+                // 同步调用 5次
                 syncFromAddressUrl();
                 success = true;
                 break;
@@ -171,8 +178,10 @@ public class AddressServerMemberLookup extends AbstractMemberLookup {
     }
     
     private void syncFromAddressUrl() throws Exception {
+        // 远程调用
         RestResult<String> result = restTemplate
                 .get(addressServerUrl, Header.EMPTY, Query.EMPTY, genericType.getType());
+        // 解析结果
         if (result.ok()) {
             isAddressServerHealth = true;
             Reader reader = new StringReader(result.getData());

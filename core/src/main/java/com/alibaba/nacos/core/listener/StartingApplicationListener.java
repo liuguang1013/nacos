@@ -48,6 +48,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * init environment config.
+ * 主要是设置属性、打印日志
  *
  * @author <a href="mailto:huangxiaoyu1018@gmail.com">hxy1991</a>
  * @since 0.5.0
@@ -100,19 +101,21 @@ public class StartingApplicationListener implements NacosApplicationListener {
     
     @Override
     public void environmentPrepared(ConfigurableEnvironment environment) {
+        // 创建 nacos/logs, nacos/conf, nacos/data 三个目录
         makeWorkDir();
-        
+        // 保存 environment 对象
         injectEnvironment(environment);
-        
+        // 加载属性
         loadPreProperties(environment);
-        
+        // 初始化系统属性
         initSystemProperty();
     }
     
     @Override
     public void contextPrepared(ConfigurableApplicationContext context) {
+        // 输出日志： The server IP list of Nacos is 服务端列表
         logClusterConf();
-        
+        // 输出日志： Nacos is starting...
         logStarting();
     }
 
@@ -124,10 +127,11 @@ public class StartingApplicationListener implements NacosApplicationListener {
     @Override
     public void started(ConfigurableApplicationContext context) {
         starting = false;
-        
+        // 关闭打印 Nacos is starting... 的线程池
         closeExecutor();
-        
+        // 设置状态为启动成功
         ApplicationUtils.setStarted(true);
+        // 判断存储模式
         judgeStorageMode(context.getEnvironment());
     }
     
@@ -159,6 +163,7 @@ public class StartingApplicationListener implements NacosApplicationListener {
             SOURCES.putAll(EnvUtil.loadProperties(EnvUtil.getApplicationConfFileResource()));
             environment.getPropertySources()
                     .addLast(new OriginTrackedMapPropertySource(NACOS_APPLICATION_CONF, SOURCES));
+            // 注册观察者
             registerWatcher();
         } catch (Exception e) {
             throw new NacosRuntimeException(NacosException.SERVER_ERROR, e);
@@ -188,11 +193,13 @@ public class StartingApplicationListener implements NacosApplicationListener {
     }
     
     private void initSystemProperty() {
+        // 设置 nacos.mode 为 单机模式 或者 集群模式
         if (EnvUtil.getStandaloneMode()) {
             System.setProperty(MODE_PROPERTY_KEY_STAND_MODE, NACOS_MODE_STAND_ALONE);
         } else {
             System.setProperty(MODE_PROPERTY_KEY_STAND_MODE, NACOS_MODE_CLUSTER);
         }
+        // 设置 nacos.function.mode 服务端功能模式 为 all、config、naming
         if (EnvUtil.getFunctionMode() == null) {
             System.setProperty(MODE_PROPERTY_KEY_FUNCTION_MODE, DEFAULT_FUNCTION_MODE);
         } else if (EnvUtil.FUNCTION_MODE_CONFIG.equals(EnvUtil.getFunctionMode())) {
@@ -200,7 +207,7 @@ public class StartingApplicationListener implements NacosApplicationListener {
         } else if (EnvUtil.FUNCTION_MODE_NAMING.equals(EnvUtil.getFunctionMode())) {
             System.setProperty(MODE_PROPERTY_KEY_FUNCTION_MODE, EnvUtil.FUNCTION_MODE_NAMING);
         }
-        
+        // 设置 nacos.local.ip 本机 ip地址
         System.setProperty(LOCAL_IP_PROPERTY_KEY, InetUtils.getSelfIP());
     }
     
@@ -235,10 +242,10 @@ public class StartingApplicationListener implements NacosApplicationListener {
     
     private void logStarting() {
         if (!EnvUtil.getStandaloneMode()) {
-            
+            // 创建线程池，这个线程池在启动成功后， closeExecutor（）方法关闭
             scheduledExecutorService = ExecutorFactory.newSingleScheduledExecutorService(
                     new NameThreadFactory("com.alibaba.nacos.core.nacos-starting"));
-            
+            // 初始延迟1s，之后每一秒输出一次
             scheduledExecutorService.scheduleWithFixedDelay(() -> {
                 if (starting) {
                     LOGGER.info("Nacos is starting...");
@@ -250,7 +257,9 @@ public class StartingApplicationListener implements NacosApplicationListener {
     private void judgeStorageMode(ConfigurableEnvironment env) {
         
         // External data sources are used by default in cluster mode
+        // 默认情况下，在集群模式下使用外部数据源
         String platform = this.getDatasourcePlatform(env);
+        // 判断是够使用外部存储
         boolean useExternalStorage =
                 !DEFAULT_DATASOURCE_PLATFORM.equalsIgnoreCase(platform) && !DERBY_DATABASE.equalsIgnoreCase(platform);
         
@@ -258,11 +267,14 @@ public class StartingApplicationListener implements NacosApplicationListener {
         // This value is true in stand-alone mode and false in cluster mode
         // If this value is set to true in cluster mode, nacos's distributed storage engine is turned on
         // default value is depend on ${nacos.standalone}
-        
+        // setUseExternalDB后必须初始化。单机模式为true，集群模式为false
+        // 如果在集群模式下设置为true，则开启nacos的分布式存储引擎。
+        // 默认值: 看属性值 nacos.standalone
         if (!useExternalStorage) {
             boolean embeddedStorage = EnvUtil.getStandaloneMode() || Boolean.getBoolean("embeddedStorage");
             // If the embedded data source storage is not turned on, it is automatically
             // upgraded to the external data source storage, as before
+            // 单机模式下，embeddedStorage 属性为 false ，它会像以前一样自动升级到外部数据源存储
             if (!embeddedStorage) {
                 useExternalStorage = true;
             }
@@ -275,6 +287,7 @@ public class StartingApplicationListener implements NacosApplicationListener {
     
     /**
      * get datasource platform.
+     * 获取数据源平台
      *
      * @param env ConfigurableEnvironment.
      * @return

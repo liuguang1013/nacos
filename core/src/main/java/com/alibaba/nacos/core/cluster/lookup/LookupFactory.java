@@ -29,6 +29,7 @@ import java.util.Objects;
 
 /**
  * An addressing pattern factory, responsible for the creation of all addressing patterns.
+ * 一个寻址模式工厂，负责所有寻址模式的创建。
  *
  * @author <a href="mailto:liaochuntao@live.com">liaochuntao</a>
  */

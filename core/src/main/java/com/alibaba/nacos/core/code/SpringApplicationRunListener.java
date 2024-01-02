@@ -29,6 +29,8 @@ import java.util.Collection;
 
 /**
  * {@link org.springframework.boot.SpringApplicationRunListener} before {@link EventPublishingRunListener} execution.
+ * SpringApplicationRunListener 在 EventPublishingRunListener 之前运行
+ *
  *
  * @author <a href="mailto:mercyblitz@gmail.com">Mercy</a>
  * @since 0.2.2
@@ -39,6 +41,12 @@ public class SpringApplicationRunListener implements org.springframework.boot.Sp
     
     private final String[] args;
 
+    /**
+     * 加载 NacosApplicationListener 的实现类
+     * LoggingApplicationListener
+     * StartingApplicationListener
+     * GracefulShutdownListener     这个监听者在  nacos-naming 项目中
+     */
     Collection<NacosApplicationListener> nacosApplicationListeners = NacosServiceLoader.load(NacosApplicationListener.class);
 
     public SpringApplicationRunListener(SpringApplication application, String[] args) {

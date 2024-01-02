@@ -138,7 +138,7 @@ public class ServerMemberManager implements ApplicationListener<WebServerInitial
     
     /**
      * Cluster node list.
-     * key ： ip+ port
+     * key ： ip：port
      * value ： Member 对象
      */
     private volatile ConcurrentSkipListMap<String, Member> serverList;

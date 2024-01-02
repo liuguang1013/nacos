@@ -246,6 +246,7 @@ public class EnvUtil {
     
     /**
      * server function mode.
+     * 服务端功能模式
      */
     public static String getFunctionMode() {
         if (StringUtils.isEmpty(functionModeType)) {
@@ -264,11 +265,15 @@ public class EnvUtil {
     }
 
 
+    /**
+     * 获取 nacos 地址
+     */
     public static String getNacosHome() {
         if (StringUtils.isBlank(nacosHomePath)) {
+            // 在系统变量中获取
             String nacosHome = System.getProperty(NACOS_HOME_KEY);
             if (StringUtils.isBlank(nacosHome)) {
-                // ${user.home}/nacos
+                // 默认的： ${user.home}/nacos
                 nacosHome = Paths.get(System.getProperty(NACOS_HOME_PROPERTY), NACOS_HOME_ADDITIONAL_FILEPATH)
                         .toString();
             }
@@ -328,6 +333,7 @@ public class EnvUtil {
     
     /**
      * read cluster.conf to ip list.
+     * 读取 cluster.conf 到 ip 列表中
      *
      * @return ip list.
      * @throws IOException ioexception {@link IOException}
@@ -335,6 +341,7 @@ public class EnvUtil {
     public static List<String> readClusterConf() throws IOException {
         try (Reader reader = new InputStreamReader(new FileInputStream(new File(getClusterConfFilePath())),
                 StandardCharsets.UTF_8)) {
+            // 分析文件
             return analyzeClusterConf(reader);
         } catch (FileNotFoundException ignore) {
             List<String> tmp = new ArrayList<>();
@@ -415,7 +422,9 @@ public class EnvUtil {
     }
     
     public static Resource getApplicationConfFileResource() {
+        // 获取自定义文件属性
         Resource customResource = getCustomFileResource();
+        // 不存在自定义的，加载 默认的 /application.properties
         return customResource == null ? getDefaultResource() : customResource;
     }
     
@@ -437,7 +446,13 @@ public class EnvUtil {
         }
         return null;
     }
-    
+
+    /**
+     * 获取默认的属性文件
+     * /application.properties
+     *
+     * @return
+     */
     private static Resource getDefaultResource() {
         InputStream inputStream = EnvUtil.class.getResourceAsStream(DEFAULT_RESOURCE_PATH);
         return new InputStreamResource(inputStream);

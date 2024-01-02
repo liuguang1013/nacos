@@ -37,6 +37,7 @@ public class LoggingApplicationListener implements NacosApplicationListener {
     
     @Override
     public void environmentPrepared(ConfigurableEnvironment environment) {
+        // 属性检查 ，环境中不包含 logging.config 属性，设置默认值 classpath:META-INF/logback/nacos.xml
         if (!environment.containsProperty(CONFIG_PROPERTY)) {
             System.setProperty(CONFIG_PROPERTY, DEFAULT_NACOS_LOGBACK_LOCATION);
             if (LOGGER.isInfoEnabled()) {
