@@ -264,6 +264,7 @@ public class NamingGrpcClientProxy extends AbstractNamingClientProxy {
         request.setCluster(clusters);
         request.setHealthyOnly(healthyOnly);
         request.setUdpPort(udpPort);
+        // 获取 服务信息：包含 提供服务的 instants 列表信息
         QueryServiceResponse response = requestToServer(request, QueryServiceResponse.class);
         return response.getServiceInfo();
     }

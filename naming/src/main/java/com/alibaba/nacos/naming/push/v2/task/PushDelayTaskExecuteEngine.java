@@ -58,6 +58,7 @@ public class PushDelayTaskExecuteEngine extends NacosDelayTaskExecuteEngine {
         this.metadataManager = metadataManager;
         this.pushExecutor = pushExecutor;
         this.switchDomain = switchDomain;
+        // 设置默认的 推送延迟任务处理器
         setDefaultTaskProcessor(new PushDelayTaskProcessor(this));
     }
     
@@ -88,7 +89,13 @@ public class PushDelayTaskExecuteEngine extends NacosDelayTaskExecuteEngine {
         }
         super.processTasks();
     }
-    
+
+    /**
+     * ServiceEvent.ServiceChangedEvent 服务改变事件、
+     * ServiceEvent.ServiceSubscribedEvent 服务订阅事件
+     * 触发后，通过 NacosDelayTaskExecuteEngine 添加任务，
+     * 最终会通过这个任务处理器，将任务添加到 NacosExecuteTaskExecuteEngine 中，进行处理
+     */
     private static class PushDelayTaskProcessor implements NacosTaskProcessor {
         
         private final PushDelayTaskExecuteEngine executeEngine;
@@ -99,8 +106,10 @@ public class PushDelayTaskExecuteEngine extends NacosDelayTaskExecuteEngine {
         
         @Override
         public boolean process(NacosTask task) {
+            // 处理推送延迟文物
             PushDelayTask pushDelayTask = (PushDelayTask) task;
             Service service = pushDelayTask.getService();
+            // 命名执行任务调度程序 中 有立即执行引擎，向其中添加任务
             NamingExecuteTaskDispatcher.getInstance()
                     .dispatchAndExecuteTask(service, new PushExecuteTask(service, executeEngine, pushDelayTask));
             return true;

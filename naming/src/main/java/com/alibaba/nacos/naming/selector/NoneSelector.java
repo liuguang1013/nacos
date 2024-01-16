@@ -25,7 +25,7 @@ import java.util.List;
 
 /**
  * Selector with no filtering.
- *
+ *  没有过滤的选择器。
  * @author chenglu
  * @date 2021-08-04 13:28
  */

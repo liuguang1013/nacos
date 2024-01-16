@@ -45,12 +45,21 @@ import java.util.concurrent.ConcurrentMap;
  */
 @Component
 public class ClientServiceIndexesManager extends SmartSubscriber {
-    
+
+    /**
+     * key ： Service 服务对象
+     * value： grpc 的 connectionId 的 set 集合
+     */
     private final ConcurrentMap<Service, Set<String>> publisherIndexes = new ConcurrentHashMap<>();
-    
+
+    /**
+     * key ：Service 服务对象
+     * value： grpc 的 connectionId 的 set 集合
+     */
     private final ConcurrentMap<Service, Set<String>> subscriberIndexes = new ConcurrentHashMap<>();
     
     public ClientServiceIndexesManager() {
+        // 向注册中心，注册 订阅者
         NotifyCenter.registerSubscriber(this, NamingEventPublisherFactory.getInstance());
     }
     
@@ -59,6 +68,7 @@ public class ClientServiceIndexesManager extends SmartSubscriber {
     }
     
     public Collection<String> getAllClientsSubscribeService(Service service) {
+        // 获取服务 所有的 订阅者
         return subscriberIndexes.containsKey(service) ? subscriberIndexes.get(service) : new ConcurrentHashSet<>();
     }
     
@@ -76,20 +86,26 @@ public class ClientServiceIndexesManager extends SmartSubscriber {
             publisherIndexes.remove(service);
         }
     }
-    
+
     @Override
     public List<Class<? extends Event>> subscribeTypes() {
         List<Class<? extends Event>> result = new LinkedList<>();
+        // 客户端 注册服务 事件
         result.add(ClientOperationEvent.ClientRegisterServiceEvent.class);
+        // 客户端 取消注册服 事件
         result.add(ClientOperationEvent.ClientDeregisterServiceEvent.class);
+        // 客户端 订阅服务 事件
         result.add(ClientOperationEvent.ClientSubscribeServiceEvent.class);
+        // 客户端 取消订阅服务 事件
         result.add(ClientOperationEvent.ClientUnsubscribeServiceEvent.class);
+        // 客户端 断开连接 事件
         result.add(ClientEvent.ClientDisconnectEvent.class);
         return result;
     }
     
     @Override
     public void onEvent(Event event) {
+        // 判断事件类型
         if (event instanceof ClientEvent.ClientDisconnectEvent) {
             handleClientDisconnect((ClientEvent.ClientDisconnectEvent) event);
         } else if (event instanceof ClientOperationEvent) {
@@ -118,6 +134,7 @@ public class ClientServiceIndexesManager extends SmartSubscriber {
         Service service = event.getService();
         String clientId = event.getClientId();
         if (event instanceof ClientOperationEvent.ClientRegisterServiceEvent) {
+            // 处理客户端实例注册
             addPublisherIndexes(service, clientId);
         } else if (event instanceof ClientOperationEvent.ClientDeregisterServiceEvent) {
             removePublisherIndexes(service, clientId);
@@ -131,6 +148,7 @@ public class ClientServiceIndexesManager extends SmartSubscriber {
     private void addPublisherIndexes(Service service, String clientId) {
         publisherIndexes.computeIfAbsent(service, key -> new ConcurrentHashSet<>());
         publisherIndexes.get(service).add(clientId);
+        // 发布 服务改变事件
         NotifyCenter.publishEvent(new ServiceEvent.ServiceChangedEvent(service, true));
     }
     

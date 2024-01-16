@@ -64,6 +64,7 @@ public class Instance implements Serializable {
     
     /**
      * If instance is enabled to accept request.
+     * 实例开启接收请求的标识
      */
     private boolean enabled = true;
     

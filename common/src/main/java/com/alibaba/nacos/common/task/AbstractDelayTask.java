@@ -64,6 +64,7 @@ public abstract class AbstractDelayTask implements NacosTask {
     
     @Override
     public boolean shouldProcess() {
+        // 任务执行间隔大于 1s ，应该处理
         return (System.currentTimeMillis() - this.lastProcessTime >= this.taskInterval);
     }
     

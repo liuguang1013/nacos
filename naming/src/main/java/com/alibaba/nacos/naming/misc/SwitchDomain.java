@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Switch domain.
- *
+ * 开关对象
  * @author nacos
  */
 @Component

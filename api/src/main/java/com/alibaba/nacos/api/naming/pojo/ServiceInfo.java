@@ -223,7 +223,7 @@ public class ServiceInfo {
 
     /**
      *
-     * @param name  举例： ${clusters}@@${groupName}@@${groupName}
+     * @param name  举例： ${groupName}@@${groupName}@@${clusters}
      * @param clusters
      * @return
      */

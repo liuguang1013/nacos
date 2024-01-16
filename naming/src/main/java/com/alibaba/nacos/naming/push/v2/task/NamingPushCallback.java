@@ -29,6 +29,8 @@ public interface NamingPushCallback extends PushCallBack {
     /**
      * Set actual pushed service info, the host list of service info may be changed by selector. Detail see implement of
      * {@link com.alibaba.nacos.naming.push.v2.executor.PushExecutor}.
+     * 设置实际推送的服务信息，服务信息的主机列表可以通过选择器更改。
+     * 详细信息参见 PushExecutor 的实现
      *
      * @param serviceInfo actual pushed service info
      */

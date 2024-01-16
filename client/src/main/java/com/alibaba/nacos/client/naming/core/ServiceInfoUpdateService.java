@@ -67,7 +67,7 @@ public class ServiceInfoUpdateService implements Closeable {
             NamingClientProxy namingClientProxy, InstancesChangeNotifier changeNotifier) {
         // 获取配置 是否异步查询订阅服务，默认 false
         this.asyncQuerySubscribeService = isAsyncQueryForSubscribeService(properties);
-        // 初始化线程池
+        // 初始化 拉取服务信息的 线程池
         this.executor = new ScheduledThreadPoolExecutor(initPollingThreadCount(properties),
                 new NameThreadFactory("com.alibaba.nacos.client.naming.updater"));
         this.serviceInfoHolder = serviceInfoHolder;
@@ -98,25 +98,32 @@ public class ServiceInfoUpdateService implements Closeable {
     
     /**
      * Schedule update if absent.
+     * 如果缺少，添加定时更新任务
      *
      * @param serviceName service name
      * @param groupName   group name
      * @param clusters    clusters
      */
     public void scheduleUpdateIfAbsent(String serviceName, String groupName, String clusters) {
+        // 判断是否是异步查询 订阅服务
         if (!asyncQuerySubscribeService) {
             return;
         }
+        // 获取 serviceKey：${groupName}@@${groupName}@@${clusters}
         String serviceKey = ServiceInfo.getKey(NamingUtils.getGroupedName(serviceName, groupName), clusters);
+        // 存在 ，直接返回
         if (futureMap.get(serviceKey) != null) {
             return;
         }
+        // 加锁
         synchronized (futureMap) {
+            // 双重检查
             if (futureMap.get(serviceKey) != null) {
                 return;
             }
-            
+            // 添加 服务更新 任务，延迟 1s 后，只拉取一次
             ScheduledFuture<?> future = addTask(new UpdateTask(serviceName, groupName, clusters));
+            // 任务的 future 加入缓存
             futureMap.put(serviceKey, future);
         }
     }
@@ -184,35 +191,45 @@ public class ServiceInfoUpdateService implements Closeable {
         
         @Override
         public void run() {
+            // 默认是 1s
             long delayTime = DEFAULT_DELAY;
             
             try {
+                // 服务 不存在 服务改变监听者，并且 返回值缓存中不存在 服务
                 if (!changeNotifier.isSubscribed(groupName, serviceName, clusters) && !futureMap.containsKey(
                         serviceKey)) {
                     NAMING_LOGGER.info("update task is stopped, service:{}, clusters:{}", groupedServiceName, clusters);
+                    // 取消执行 更新任务
                     isCancel = true;
                     return;
                 }
-                
+                // 获取服务信息
                 ServiceInfo serviceObj = serviceInfoHolder.getServiceInfoMap().get(serviceKey);
+                // 未获取到
                 if (serviceObj == null) {
+                    // 向服务端获取服务信息
                     serviceObj = namingClientProxy.queryInstancesOfService(serviceName, groupName, clusters, 0, false);
                     serviceInfoHolder.processServiceInfo(serviceObj);
                     lastRefTime = serviceObj.getLastRefTime();
                     return;
                 }
-                
+                // 服务信息，上次刷新时间 < 定时任务执行时间
                 if (serviceObj.getLastRefTime() <= lastRefTime) {
+                    // 向服务端获取服务信息
                     serviceObj = namingClientProxy.queryInstancesOfService(serviceName, groupName, clusters, 0, false);
                     serviceInfoHolder.processServiceInfo(serviceObj);
                 }
+                // 刷新时间
                 lastRefTime = serviceObj.getLastRefTime();
+                // 没有实例提供服务
                 if (CollectionUtils.isEmpty(serviceObj.getHosts())) {
+                    // 增加失败次数，最大 6 次
                     incFailCount();
                     return;
                 }
                 // TODO multiple time can be configured.
                 delayTime = serviceObj.getCacheMillis() * DEFAULT_UPDATE_CACHE_TIME_MULTIPLE;
+                // 重置失败次数
                 resetFailCount();
             } catch (NacosException e) {
                 handleNacosException(e);
@@ -220,6 +237,7 @@ public class ServiceInfoUpdateService implements Closeable {
                 handleUnknownException(e);
             } finally {
                 if (!isCancel) {
+                    // 延迟 最大时间 1 min，再次刷新
                     executor.schedule(this, Math.min(delayTime << failCount, DEFAULT_DELAY * 60),
                             TimeUnit.MILLISECONDS);
                 }

@@ -171,9 +171,13 @@ public class NamingClientProxyDelegate implements NamingClientProxy {
     @Override
     public ServiceInfo subscribe(String serviceName, String groupName, String clusters) throws NacosException {
         NAMING_LOGGER.info("[SUBSCRIBE-SERVICE] service:{}, group:{}, clusters:{} ", serviceName, groupName, clusters);
+        // groupName@@serviceName
         String serviceNameWithGroup = NamingUtils.getGroupedName(serviceName, groupName);
+        //  ${groupName}@@${groupName}@@${clusters}
         String serviceKey = ServiceInfo.getKey(serviceNameWithGroup, clusters);
+        // 服务信息更新服务，添加定时更新任务
         serviceInfoUpdateService.scheduleUpdateIfAbsent(serviceName, groupName, clusters);
+        //
         ServiceInfo result = serviceInfoHolder.getServiceInfoMap().get(serviceKey);
         if (null == result || !isSubscribed(serviceName, groupName, clusters)) {
             result = grpcClientProxy.subscribe(serviceName, groupName, clusters);

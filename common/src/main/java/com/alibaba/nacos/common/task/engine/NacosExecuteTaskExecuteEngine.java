@@ -26,6 +26,7 @@ import java.util.Collection;
 
 /**
  * Nacos execute task execute engine.
+ * Nacos执行任务执行引擎。
  *
  * @author xiweng.yy
  */
@@ -39,8 +40,10 @@ public class NacosExecuteTaskExecuteEngine extends AbstractNacosTaskExecuteEngin
     
     public NacosExecuteTaskExecuteEngine(String name, Logger logger, int dispatchWorkerCount) {
         super(logger);
+        // 创建 任务执行工作者 数组，默认容量：1
         executeWorkers = new TaskExecuteWorker[dispatchWorkerCount];
         for (int mod = 0; mod < dispatchWorkerCount; ++mod) {
+            // 每个工作者，内部持有一个阻塞队列，单线线程不断拉取任务
             executeWorkers[mod] = new TaskExecuteWorker(name, mod, dispatchWorkerCount, getEngineLog());
         }
     }
@@ -62,10 +65,12 @@ public class NacosExecuteTaskExecuteEngine extends AbstractNacosTaskExecuteEngin
     @Override
     public void addTask(Object tag, AbstractExecuteTask task) {
         NacosTaskProcessor processor = getProcessor(tag);
+        // NacosExecuteTaskExecuteEngine 引擎创建的时候，没有指定 处理器
         if (null != processor) {
             processor.process(task);
             return;
         }
+        // 获取工作者
         TaskExecuteWorker worker = getWorker(tag);
         worker.process(task);
     }

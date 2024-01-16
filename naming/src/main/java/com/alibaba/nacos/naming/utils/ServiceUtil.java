@@ -160,8 +160,8 @@ public final class ServiceUtil {
      *
      * @param serviceInfo     original service info
      * @param serviceMetadata service meta info
-     * @param healthyOnly     whether only select instance which healthy
-     * @param enableOnly      whether only select instance which enabled
+     * @param healthyOnly     whether only select instance which healthy 是否只选择运行正常的实例
+     * @param enableOnly      whether only select instance which enabled 是否只选择已启用的实例
      * @param subscriber subscriber
      * @return new service info
      */
@@ -177,20 +177,29 @@ public final class ServiceUtil {
      * @param serviceInfo     original service info
      * @param serviceMetadata service meta info
      * @param cluster         cluster of instances
-     * @param healthyOnly     whether only select instance which healthy
-     * @param enableOnly      whether only select instance which enabled
+     * @param healthyOnly     whether only select instance which healthy 是否只选择运行正常的实例
+     * @param enableOnly      whether only select instance which enabled 是否只选择已启用的实例
      * @param subscriberIp subscriber ip address
      * @return new service info
      */
     public static ServiceInfo selectInstancesWithHealthyProtection(ServiceInfo serviceInfo, ServiceMetadata serviceMetadata, String cluster,
             boolean healthyOnly, boolean enableOnly, String subscriberIp) {
+
+        /**
+         *  定义实例过滤器，在集群所属、实例健康判断后
+         *  filteredResult 是 serviceInfo 信息
+         *  allInstances 所有实例信息，包含不健康的实例
+         *  healthyCount 健康的实例数
+         */
         InstancesFilter filter = (filteredResult, allInstances, healthyCount) -> {
             if (serviceMetadata == null) {
                 return;
             }
+            // 获取 serviceInfo 的所有实例信息（实例数量 <= 所有实例数量，当过滤不健康实例时候 <,当不过滤不健康实例时，=）
             allInstances = filteredResult.getHosts();
             int originalTotal = allInstances.size();
             // filter ips using selector
+            // 使用 选择器 过滤 ip
             SelectorManager selectorManager = ApplicationUtils.getBean(SelectorManager.class);
             allInstances = selectorManager.select(serviceMetadata.getSelector(), subscriberIp, allInstances);
             filteredResult.setHosts(allInstances);
@@ -225,6 +234,7 @@ public final class ServiceUtil {
                 filteredResult.setHosts(filteredInstances);
             }
         };
+        // 挑选实例
         return doSelectInstances(serviceInfo, cluster, healthyOnly, enableOnly, filter);
     }
 
@@ -241,6 +251,7 @@ public final class ServiceUtil {
     private static ServiceInfo doSelectInstances(ServiceInfo serviceInfo, String cluster,
                                                  boolean healthyOnly, boolean enableOnly,
                                                  InstancesFilter filter) {
+        // 创建服务信息
         ServiceInfo result = new ServiceInfo();
         result.setName(serviceInfo.getName());
         result.setGroupName(serviceInfo.getGroupName());
@@ -248,18 +259,24 @@ public final class ServiceUtil {
         result.setLastRefTime(System.currentTimeMillis());
         result.setClusters(cluster);
         result.setReachProtectionThreshold(false);
+
         Set<String> clusterSets = com.alibaba.nacos.common.utils.StringUtils.isNotBlank(cluster) ? new HashSet<>(
                 Arrays.asList(cluster.split(","))) : new HashSet<>();
         long healthyCount = 0L;
         // The instance list won't be modified almost time.
+        // 实例列表几乎不会被修改。
         List<com.alibaba.nacos.api.naming.pojo.Instance> filteredInstances = new LinkedList<>();
         // The instance list of all filtered by cluster/enabled condition.
+        // 被集群、已启用条件 过滤后的所有实例列表
         List<com.alibaba.nacos.api.naming.pojo.Instance> allInstances = new LinkedList<>();
+        // 遍历 service 服务下的 instance 实例信息
         for (com.alibaba.nacos.api.naming.pojo.Instance ip : serviceInfo.getHosts()) {
+            // 订阅者的 集群名称中，包含实例的名称  && 实例接收请求 或者
             if (checkCluster(clusterSets, ip) && checkEnabled(enableOnly, ip)) {
                 if (!healthyOnly || ip.isHealthy()) {
                     filteredInstances.add(ip);
                 }
+                // 统计健康实例的数量
                 if (ip.isHealthy()) {
                     healthyCount += 1;
                 }

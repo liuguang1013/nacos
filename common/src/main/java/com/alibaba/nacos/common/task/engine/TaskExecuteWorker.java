@@ -56,10 +56,13 @@ public final class TaskExecuteWorker implements NacosTaskProcessor, Closeable {
     
     public TaskExecuteWorker(final String name, final int mod, final int total, final Logger logger) {
         this.name = name + "_" + mod + "%" + total;
+        // 阻塞队列数量 默认 32768.
         this.queue = new ArrayBlockingQueue<>(QUEUE_CAPACITY);
         this.closed = new AtomicBoolean(false);
         this.log = null == logger ? LoggerFactory.getLogger(TaskExecuteWorker.class) : logger;
+        // 创建真正 工作者
         realWorker = new InnerWorker(this.name);
+        // 在阻塞队列中获取任务，并执行任务的 run 方法
         realWorker.start();
     }
     
@@ -70,6 +73,7 @@ public final class TaskExecuteWorker implements NacosTaskProcessor, Closeable {
     @Override
     public boolean process(NacosTask task) {
         if (task instanceof AbstractExecuteTask) {
+            // 向阻塞队列添加 任务
             putTask((Runnable) task);
         }
         return true;

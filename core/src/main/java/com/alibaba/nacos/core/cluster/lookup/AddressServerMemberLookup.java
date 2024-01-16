@@ -110,6 +110,7 @@ public class AddressServerMemberLookup extends AbstractMemberLookup {
         // 获取 域名
         String envDomainName = System.getenv(ADDRESS_SERVER_DOMAIN_ENV);
         if (StringUtils.isBlank(envDomainName)) {
+            // 默认 jmenv.tbsite.net
             domainName = EnvUtil.getProperty(ADDRESS_SERVER_DOMAIN_PROPERTY, DEFAULT_SERVER_DOMAIN);
         } else {
             domainName = envDomainName;
@@ -117,6 +118,7 @@ public class AddressServerMemberLookup extends AbstractMemberLookup {
         // 获取端口号
         String envAddressPort = System.getenv(ADDRESS_SERVER_PORT_ENV);
         if (StringUtils.isBlank(envAddressPort)) {
+            // 默认 8080
             addressPort = EnvUtil.getProperty(ADDRESS_SERVER_PORT_PROPERTY, DEFAULT_SERVER_POINT);
         } else {
             addressPort = envAddressPort;
@@ -124,6 +126,7 @@ public class AddressServerMemberLookup extends AbstractMemberLookup {
         // 获取 url 地址
         String envAddressUrl = System.getenv(ADDRESS_SERVER_URL_ENV);
         if (StringUtils.isBlank(envAddressUrl)) {
+            // 默认 /nacos/serverlist
             addressUrl = EnvUtil.getProperty(ADDRESS_SERVER_URL_PROPERTY, EnvUtil.getContextPath() + "/" + "serverlist");
         } else {
             addressUrl = envAddressUrl;

@@ -216,6 +216,7 @@ public class EnvUtil {
     
     public static String getContextPath() {
         if (Objects.isNull(contextPath)) {
+            // 默认 /nacos
             contextPath = getProperty(Constants.WEB_CONTEXT_PATH, DEFAULT_WEB_CONTEXT_PATH);
             if (Constants.ROOT_WEB_CONTEXT_PATH.equals(contextPath)) {
                 contextPath = StringUtils.EMPTY;

@@ -377,11 +377,13 @@ public class ServerMemberManager implements ApplicationListener<WebServerInitial
     
     /**
      * return this cluster all members.
+     * 返回集群的所有成员
      *
      * @return {@link Collection} all member
      */
     public Collection<Member> allMembers() {
         // We need to do a copy to avoid affecting the real data
+        // 创建一个复制对象，免得影响真正的数据
         HashSet<Member> set = new HashSet<>(serverList.values());
         set.add(self);
         return set;

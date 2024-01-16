@@ -59,9 +59,16 @@ public class FailoverReactor implements Closeable {
     private static final String IS_FAILOVER_MODE = "1";
     
     private static final String NO_FAILOVER_MODE = "0";
-    
+
+    /**
+     * 故障转移模式
+     */
     private static final String FAILOVER_MODE_PARAM = "failover-mode";
-    
+
+    /**
+     * 服务信息缓存，
+     * 如果开启了失败转移开关，会加载 ServiceInfo 的json 数据到 map 中
+     */
     private Map<String, ServiceInfo> serviceMap = new ConcurrentHashMap<>();
     
     private final Map<String, String> switchParams = new ConcurrentHashMap<>();
@@ -184,6 +191,7 @@ public class FailoverReactor implements Closeable {
                                 switchParams.put(FAILOVER_MODE_PARAM, Boolean.TRUE.toString());
                                 NAMING_LOGGER.info("failover-mode is on");
                                 // 执行 失败转移任务
+                                // 将持久化的 serviceInfo 数据加载到 serviceMap 中
                                 new FailoverFileReader().run();
                             } else if (NO_FAILOVER_MODE.equals(line1)) {
                                 switchParams.put(FAILOVER_MODE_PARAM, Boolean.FALSE.toString());

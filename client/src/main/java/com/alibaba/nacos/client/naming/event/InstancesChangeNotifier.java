@@ -93,6 +93,7 @@ public class InstancesChangeNotifier extends Subscriber<InstancesChangeEvent> {
     
     /**
      * check serviceName,clusters is subscribed.
+     * 检查服务是被订阅
      *
      * @param groupName   group name
      * @param serviceName serviceName

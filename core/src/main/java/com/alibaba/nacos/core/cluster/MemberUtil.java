@@ -246,6 +246,7 @@ public class MemberUtil {
     
     /**
      * Get address list of members.
+     * 获取成员对象的 IP+port
      *
      * @param members members
      * @return address list

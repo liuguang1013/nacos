@@ -63,8 +63,10 @@ public class NamingSubscriberServiceV2Impl extends SmartSubscriber implements Na
             NamingMetadataManager metadataManager, PushExecutorDelegate pushExecutor, SwitchDomain switchDomain) {
         this.clientManager = clientManager;
         this.indexesManager = indexesManager;
+        // 推送延迟任务执行引擎
         this.delayTaskEngine = new PushDelayTaskExecuteEngine(clientManager, indexesManager, serviceStorage,
                 metadataManager, pushExecutor, switchDomain);
+        // 注册订阅者
         NotifyCenter.registerSubscriber(this, NamingEventPublisherFactory.getInstance());
         
     }
@@ -102,7 +104,13 @@ public class NamingSubscriberServiceV2Impl extends SmartSubscriber implements Na
     public Collection<Subscriber> getFuzzySubscribers(Service service) {
         return getFuzzySubscribers(service.getNamespace(), service.getGroupedServiceName());
     }
-    
+
+    /**
+     * 订阅的事件类型
+     *  ServiceEvent.ServiceChangedEvent
+     *  ServiceEvent.ServiceSubscribedEvent
+     * @return
+     */
     @Override
     public List<Class<? extends Event>> subscribeTypes() {
         List<Class<? extends Event>> result = new LinkedList<>();
@@ -115,9 +123,12 @@ public class NamingSubscriberServiceV2Impl extends SmartSubscriber implements Na
     public void onEvent(Event event) {
         if (event instanceof ServiceEvent.ServiceChangedEvent) {
             // If service changed, push to all subscribers.
+            // 如果服务改变，推送给所有的订阅者
             ServiceEvent.ServiceChangedEvent serviceChangedEvent = (ServiceEvent.ServiceChangedEvent) event;
             Service service = serviceChangedEvent.getService();
+            // 延迟任务引擎，添加推送延迟任务,默认的推送延迟时间是 0.5s
             delayTaskEngine.addTask(service, new PushDelayTask(service, PushConfig.getInstance().getPushTaskDelay()));
+            // itodo：指标监控，统计服务改变的次数
             MetricsMonitor.incrementServiceChangeCount(service.getNamespace(), service.getGroup(), service.getName());
         } else if (event instanceof ServiceEvent.ServiceSubscribedEvent) {
             // If service is subscribed by one client, only push this client.

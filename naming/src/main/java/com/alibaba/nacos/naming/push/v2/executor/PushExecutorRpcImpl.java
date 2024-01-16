@@ -54,9 +54,16 @@ public class PushExecutorRpcImpl implements PushExecutor {
         pushService.pushWithCallback(clientId, NotifySubscriberRequest.buildNotifySubscriberRequest(actualServiceInfo),
                 callBack, GlobalExecutor.getCallbackExecutor());
     }
-    
+
+    /**
+     * 获取 服务信息
+     * @param data
+     * @param subscriber
+     * @return
+     */
     private ServiceInfo getServiceInfo(PushDataWrapper data, Subscriber subscriber) {
         return ServiceUtil
+                //选择具有健康保护的实例
                 .selectInstancesWithHealthyProtection(data.getOriginalData(), data.getServiceMetadata(), false, true,
                         subscriber);
     }

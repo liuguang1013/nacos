@@ -38,6 +38,7 @@ public class PushDelayTask extends AbstractDelayTask {
     
     public PushDelayTask(Service service, long delay) {
         this.service = service;
+        // 推送给所有客户端
         pushToAll = true;
         targetClients = null;
         setTaskInterval(delay);
@@ -52,7 +53,13 @@ public class PushDelayTask extends AbstractDelayTask {
         setTaskInterval(delay);
         setLastProcessTime(System.currentTimeMillis());
     }
-    
+
+    /**
+     * 当 ServiceEvent.ServiceChangedEvent 事件发布后，向 NacosDelayTaskExecuteEngine 中添加 该任务
+     * 如果 NacosDelayTaskExecuteEngine 中存在 service 的任务，那么要进行合并
+     * 主要是对推送的客户端进行合并
+     * @param task task
+     */
     @Override
     public void merge(AbstractDelayTask task) {
         if (!(task instanceof PushDelayTask)) {

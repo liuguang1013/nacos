@@ -313,16 +313,30 @@ public class NacosNamingService implements NamingService {
             throws NacosException {
         return selectInstances(serviceName, Constants.DEFAULT_GROUP, clusters, healthy, subscribe);
     }
-    
+
+    /**
+     * 查找服务的实例信息列表
+     * @param serviceName name of service 服务名
+     * @param groupName   group of service 服务分组
+     * @param clusters    list of cluster 集群列表
+     * @param healthy     a flag to indicate returning healthy or unhealthy instances 指示返回正常或不正常实例的标志
+     * @param subscribe   if subscribe the service 是否订阅该服务
+     * @return
+     * @throws NacosException
+     */
     @Override
     public List<Instance> selectInstances(String serviceName, String groupName, List<String> clusters, boolean healthy,
             boolean subscribe) throws NacosException {
         
         ServiceInfo serviceInfo;
+        // 拼接 集群名
         String clusterString = StringUtils.join(clusters, ",");
+        // 判断是否订阅
         if (subscribe) {
+            // 在 ServiceInfoHolder 缓存中获取，对象信息
             serviceInfo = serviceInfoHolder.getServiceInfo(serviceName, groupName, clusterString);
             if (null == serviceInfo) {
+                // 通过客户端代理，订阅服务
                 serviceInfo = clientProxy.subscribe(serviceName, groupName, clusterString);
             }
         } else {

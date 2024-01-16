@@ -23,6 +23,7 @@ import java.util.Objects;
 
 /**
  * Subscriber.
+ * 订阅者对象
  *
  * @author nicholas
  */

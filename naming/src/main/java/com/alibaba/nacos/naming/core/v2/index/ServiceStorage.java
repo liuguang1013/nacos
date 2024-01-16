@@ -42,6 +42,7 @@ import java.util.concurrent.ConcurrentMap;
 
 /**
  * Service storage.
+ * 服务存储对象
  *
  * @author xiweng.yy
  */
@@ -55,11 +56,22 @@ public class ServiceStorage {
     private final SwitchDomain switchDomain;
     
     private final NamingMetadataManager metadataManager;
-    
+
+    /**
+     * key： Service 对象
+     * value： ServiceInfo 对象
+     */
     private final ConcurrentMap<Service, ServiceInfo> serviceDataIndexes;
     
     private final ConcurrentMap<Service, Set<String>> serviceClusterIndex;
-    
+
+    /**
+     *
+     * @param serviceIndexesManager 客户端服务索引管理对象
+     * @param clientManager 客户端管理对象
+     * @param switchDomain 开关对象
+     * @param metadataManager 元数据管理对象
+     */
     public ServiceStorage(ClientServiceIndexesManager serviceIndexesManager, ClientManagerDelegate clientManager,
             SwitchDomain switchDomain, NamingMetadataManager metadataManager) {
         this.serviceIndexesManager = serviceIndexesManager;
@@ -75,16 +87,21 @@ public class ServiceStorage {
     }
     
     public ServiceInfo getData(Service service) {
+        // 在服务数据索引对象中，获取服务对象，不存在 获取
         return serviceDataIndexes.containsKey(service) ? serviceDataIndexes.get(service) : getPushData(service);
     }
     
     public ServiceInfo getPushData(Service service) {
+        // Service 对象 转换为 ServiceInfo 对象
         ServiceInfo result = emptyServiceInfo(service);
         if (!ServiceManager.getInstance().containSingleton(service)) {
             return result;
         }
+        // 在 服务管理者中 获取 服务对象
         Service singleton = ServiceManager.getInstance().getSingleton(service);
+        // 为服务对象 设置 实例对象
         result.setHosts(getAllInstancesFromIndex(singleton));
+        // 服务端数据索引，缓存 服务对象
         serviceDataIndexes.put(singleton, result);
         return result;
     }

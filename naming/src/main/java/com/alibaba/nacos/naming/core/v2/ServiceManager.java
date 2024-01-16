@@ -34,9 +34,17 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ServiceManager {
     
     private static final ServiceManager INSTANCE = new ServiceManager();
-    
+
+    /**
+     * 保存 服务对象
+     * key 和 value 是一个对象
+     * 放入 value 的时，触发 MetadataEvent.ServiceMetadataEvent
+     */
     private final ConcurrentHashMap<Service, Service> singletonRepository;
-    
+
+    /**
+     * 缓存 namespace 命名空间 对应的服务信息
+     */
     private final ConcurrentHashMap<String, Set<Service>> namespaceSingletonMaps;
 
     /**

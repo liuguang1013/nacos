@@ -73,6 +73,7 @@ public class DistroMapper extends MemberChangeListener {
     @PostConstruct
     public void init() {
         NotifyCenter.registerSubscriber(this);
+        // 获取集群成员的 IP+port
         this.healthyList = MemberUtil.simpleMembers(memberManager.allMembers());
     }
     

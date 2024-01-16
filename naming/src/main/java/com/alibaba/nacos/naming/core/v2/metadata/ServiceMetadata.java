@@ -45,6 +45,7 @@ public class ServiceMetadata implements Serializable {
     
     /**
      * Type of {@link Selector}.
+     *
      */
     private Selector selector = new NoneSelector();
     

@@ -32,6 +32,7 @@ public class NamingExecuteTaskDispatcher {
     private final NacosExecuteTaskExecuteEngine executeEngine;
     
     private NamingExecuteTaskDispatcher() {
+        // Nacos 执行任务执行引擎
         executeEngine = new NacosExecuteTaskExecuteEngine(EnvUtil.FUNCTION_MODE_NAMING, Loggers.SRV_LOG);
     }
     
@@ -40,6 +41,7 @@ public class NamingExecuteTaskDispatcher {
     }
     
     public void dispatchAndExecuteTask(Object dispatchTag, AbstractExecuteTask task) {
+        // 向执行引擎 中添加 任务
         executeEngine.addTask(dispatchTag, task);
     }
     

@@ -46,7 +46,14 @@ public class PushExecutorDelegate implements PushExecutor {
     public void doPush(String clientId, Subscriber subscriber, PushDataWrapper data) {
         getPushExecuteService(clientId, subscriber).doPush(clientId, subscriber, data);
     }
-    
+
+    /**
+     * 执行推送，带有回调信息
+     * @param clientId   client id 客户端id
+     * @param subscriber subscriber 订阅者
+     * @param data       push data 推送数据
+     * @param callBack   callback 回调
+     */
     @Override
     public void doPushWithCallback(String clientId, Subscriber subscriber, PushDataWrapper data,
             NamingPushCallback callBack) {
@@ -56,10 +63,13 @@ public class PushExecutorDelegate implements PushExecutor {
     private PushExecutor getPushExecuteService(String clientId, Subscriber subscriber) {
         Optional<SpiPushExecutor> result = SpiImplPushExecutorHolder.getInstance()
                 .findPushExecutorSpiImpl(clientId, subscriber);
+        // 通过 spi 查找 SpiPushExecutor.class 的实现类
         if (result.isPresent()) {
             return result.get();
         }
         // use nacos default push executor
+        // 为查询到 spi 的实现类，使用 默认的 推送执行器
+        // 客户端id 包含 # 使用 udp 的推送，否则使用 grpc 推送
         return clientId.contains(IpPortBasedClient.ID_DELIMITER) ? udpPushExecuteService : rpcPushExecuteService;
     }
 }

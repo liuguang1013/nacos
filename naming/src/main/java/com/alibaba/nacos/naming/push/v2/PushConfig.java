@@ -30,7 +30,10 @@ public class PushConfig extends AbstractDynamicConfig {
     private static final String PUSH = "Push";
     
     private static final PushConfig INSTANCE = new PushConfig();
-    
+
+    /**
+     * 推送延迟任务，默认的延迟时间：0.5s
+     */
     private long pushTaskDelay = PushConstants.DEFAULT_PUSH_TASK_DELAY;
     
     private long pushTaskTimeout = PushConstants.DEFAULT_PUSH_TASK_TIMEOUT;
