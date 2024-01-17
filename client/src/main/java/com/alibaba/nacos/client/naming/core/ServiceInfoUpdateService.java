@@ -109,7 +109,7 @@ public class ServiceInfoUpdateService implements Closeable {
         if (!asyncQuerySubscribeService) {
             return;
         }
-        // 获取 serviceKey：${groupName}@@${groupName}@@${clusters}
+        // 获取 serviceKey：${groupName}@@${serviceName}@@${clusters}
         String serviceKey = ServiceInfo.getKey(NamingUtils.getGroupedName(serviceName, groupName), clusters);
         // 存在 ，直接返回
         if (futureMap.get(serviceKey) != null) {

@@ -42,16 +42,19 @@ public class RpcPushService {
     
     /**
      * push response with no ack.
-     *
+     * 无应答的推送响应。
      * @param connectionId    connectionId.
      * @param request         request.
      * @param requestCallBack requestCallBack.
      */
     public void pushWithCallback(String connectionId, ServerRequest request, PushCallBack requestCallBack,
             Executor executor) {
+        // 获取 gprc 连接
         Connection connection = connectionManager.getConnection(connectionId);
+
         if (connection != null) {
             try {
+                // 异步发送请求，默认超时时间 5s
                 connection.asyncRequest(request, new AbstractRequestCallBack(requestCallBack.getTimeout()) {
                     
                     @Override
@@ -82,7 +85,9 @@ public class RpcPushService {
                                 request, e);
                 requestCallBack.onFail(e);
             }
-        } else {
+        }
+        // 连接已经断开
+        else {
             requestCallBack.onSuccess();
         }
     }

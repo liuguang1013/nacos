@@ -36,7 +36,7 @@ import java.util.List;
 public class ServiceInfo {
     
     /**
-     * file name pattern: groupName@@name@clusters.
+     * file name pattern: groupName@@serviceName@clusters.
      */
     private static final int GROUP_POSITION = 0;
     
@@ -83,7 +83,7 @@ public class ServiceInfo {
     }
     
     /**
-     * itodo：发现注解有问题： 应该是 key:groupName@@name@@clusters
+     * itodo：发现注解有问题： 应该是 key:groupName@@serviceName@@clusters
      * There is only one form of the key:groupName@@name@clusters. This constructor used by DiskCache.read(String) and
      * FailoverReactor.FailoverFileReader,you should know that 'groupName' must not be null,and 'clusters' can be null.
      * 这里只有一种形式的键:groupName@@name@clusters。
@@ -180,24 +180,26 @@ public class ServiceInfo {
     
     /**
      * Judge whether service info is validate.
-     *
+     * 判断服务信息是否有效。
      * @return true if validate, otherwise false
      */
     public boolean validate() {
+        // 判断是够给所有 ip 推送
         if (isAllIPs()) {
             return true;
         }
-        
+        // 推送的信息中，不存在提供服务的实例信息，直接忽略
         if (hosts == null) {
             return false;
         }
         
         List<Instance> validHosts = new ArrayList<>();
         for (Instance host : hosts) {
+            // 不健康实例，直接继续
             if (!host.isHealthy()) {
                 continue;
             }
-            
+            // 权重大的实例，在集合中会有多个
             for (int i = 0; i < host.getWeight(); i++) {
                 validHosts.add(host);
             }
@@ -223,7 +225,7 @@ public class ServiceInfo {
 
     /**
      *
-     * @param name  举例： ${groupName}@@${groupName}@@${clusters}
+     * @param name  举例： ${groupName}@@${serviceName}@@${clusters}
      * @param clusters
      * @return
      */
@@ -249,7 +251,7 @@ public class ServiceInfo {
 
     /**
      * 获取 带组名的服务名
-     * 例： ${groupName}@@${groupName}
+     * 例： ${groupName}@@${serviceName}
      * @return
      */
     private String getGroupedServiceName() {

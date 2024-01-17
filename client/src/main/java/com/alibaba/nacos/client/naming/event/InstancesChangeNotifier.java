@@ -45,7 +45,10 @@ public class InstancesChangeNotifier extends Subscriber<InstancesChangeEvent> {
      * UUID
      */
     private final String eventScope;
-    
+    /**
+     * key ：serviceInfo 的key  ${groupName}@@${serviceName}@@${clusters}
+     * value：服务的事件监听者
+     */
     private final Map<String, ConcurrentHashSet<EventListener>> listenerMap = new ConcurrentHashMap<>();
     
     @JustForTest
@@ -59,6 +62,7 @@ public class InstancesChangeNotifier extends Subscriber<InstancesChangeEvent> {
     
     /**
      * register listener.
+     * 注册监听者：在服务订阅的时候进行注册
      *
      * @param groupName   group name
      * @param serviceName serviceName
@@ -123,7 +127,9 @@ public class InstancesChangeNotifier extends Subscriber<InstancesChangeEvent> {
             return;
         }
         for (final EventListener listener : eventListeners) {
+            // InstancesChangeEvent 事件 转换为 NamingEvent 事件
             final com.alibaba.nacos.api.naming.listener.Event namingEvent = transferToNamingEvent(event);
+            // 监听者中 有执行器的 异步执行，否则直接执行
             if (listener instanceof AbstractEventListener && ((AbstractEventListener) listener).getExecutor() != null) {
                 ((AbstractEventListener) listener).getExecutor().execute(() -> listener.onEvent(namingEvent));
             } else {

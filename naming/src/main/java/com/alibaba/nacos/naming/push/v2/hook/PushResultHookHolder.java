@@ -32,6 +32,7 @@ public class PushResultHookHolder implements PushResultHook {
     private final Collection<PushResultHook> hooks;
     
     private PushResultHookHolder() {
+        // spi 加载服务推送成功的 钩子函数 NacosMonitorPushResultHook
         hooks = NacosServiceLoader.load(PushResultHook.class);
     }
     

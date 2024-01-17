@@ -167,7 +167,7 @@ public class GrpcBiStreamRequestAcceptor extends BiRequestStreamGrpc.BiRequestSt
                     }
                     // 服务端发送请求后，客户端返回响应，回调通知
                     RpcAckCallbackSynchronizer.ackNotify(connectionId, response);
-                    // 刷新激活时间
+                    // 刷新连接的激活时间
                     connectionManager.refreshActiveTime(connectionId);
                 } else {
                     Loggers.REMOTE_DIGEST

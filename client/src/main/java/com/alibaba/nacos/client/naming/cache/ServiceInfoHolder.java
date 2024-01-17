@@ -59,12 +59,15 @@ public class ServiceInfoHolder implements Closeable {
     private static final String USER_HOME_PROPERTY = "user.home";
     /**
      * 服务信息缓存
-     * key: ${groupName}@@${groupName}@@${clusters}
+     * key: ${groupName}@@${service}@@${clusters}
      */
     private final ConcurrentMap<String, ServiceInfo> serviceInfoMap;
     
     private final FailoverReactor failoverReactor;
-    
+
+    /**
+     * 推送空值保护 开关
+     */
     private final boolean pushEmptyProtection;
     
     private String cacheDir;
@@ -85,6 +88,7 @@ public class ServiceInfoHolder implements Closeable {
         this.failoverReactor = new FailoverReactor(this, cacheDir);
         // 获取配置 推送空保护
         // itodo：推送空保护什么时候起作用？
+        //  解决：有新客户端注册到服务端，服务端会推送服务信息，推送的数据可能存在错误数据，开启开关则会进行检验
         this.pushEmptyProtection = isPushEmptyProtect(properties);
         this.notifierEventScope = notifierEventScope;
     }
@@ -169,6 +173,7 @@ public class ServiceInfoHolder implements Closeable {
      * @return service info
      */
     public ServiceInfo processServiceInfo(ServiceInfo serviceInfo) {
+        //获取 ${groupName}@@${serviceName}@@${clusters}
         String serviceKey = serviceInfo.getKey();
         if (serviceKey == null) {
             return null;
@@ -176,19 +181,26 @@ public class ServiceInfoHolder implements Closeable {
         ServiceInfo oldService = serviceInfoMap.get(serviceInfo.getKey());
         if (isEmptyOrErrorPush(serviceInfo)) {
             //empty or error push, just ignore
+            // 空或错误推送，忽略即可
             return oldService;
         }
+        // 更新缓存信息
         serviceInfoMap.put(serviceInfo.getKey(), serviceInfo);
+        // 判断 服务信息是否改变
         boolean changed = isChangedServiceInfo(oldService, serviceInfo);
+        // 补充 字段信息
         if (StringUtils.isBlank(serviceInfo.getJsonFromServer())) {
             serviceInfo.setJsonFromServer(JacksonUtils.toJson(serviceInfo));
         }
         MetricsMonitor.getServiceInfoMapSizeMonitor().set(serviceInfoMap.size());
+        // 如果服务信息发生改变，发布 InstancesChangeEvent 实例变化事件
         if (changed) {
             NAMING_LOGGER.info("current ips:({}) service: {} -> {}", serviceInfo.ipCount(), serviceInfo.getKey(),
                     JacksonUtils.toJson(serviceInfo.getHosts()));
+            //发布 InstancesChangeEvent 实例变化事件：
             NotifyCenter.publishEvent(new InstancesChangeEvent(notifierEventScope, serviceInfo.getName(), serviceInfo.getGroupName(),
                     serviceInfo.getClusters(), serviceInfo.getHosts()));
+            // 持久化到磁盘  ${user.home}/nacos/${namingCacheRegistryDir}/naming/${namespace}
             DiskCache.write(serviceInfo, cacheDir);
         }
         return serviceInfo;
@@ -199,17 +211,20 @@ public class ServiceInfoHolder implements Closeable {
     }
     
     private boolean isChangedServiceInfo(ServiceInfo oldService, ServiceInfo newService) {
+        // 之前不存在 该服务信息
         if (null == oldService) {
             NAMING_LOGGER.info("init new ips({}) service: {} -> {}", newService.ipCount(), newService.getKey(),
                     JacksonUtils.toJson(newService.getHosts()));
             return true;
         }
+        // 缓存服务的刷新时间  >  推送服务的刷新时间，认为推送的是过期的数据
         if (oldService.getLastRefTime() > newService.getLastRefTime()) {
             NAMING_LOGGER.warn("out of date data received, old-t: {}, new-t: {}", oldService.getLastRefTime(),
                     newService.getLastRefTime());
             return false;
         }
         boolean changed = false;
+        // key：  ip:port
         Map<String, Instance> oldHostMap = new HashMap<>(oldService.getHosts().size());
         for (Instance host : oldService.getHosts()) {
             oldHostMap.put(host.toInetAddr(), host);
@@ -248,7 +263,7 @@ public class ServiceInfoHolder implements Closeable {
             //add to remove hosts
             remvHosts.add(host);
         }
-        
+
         if (newHosts.size() > 0) {
             changed = true;
             NAMING_LOGGER.info("new ips({}) service: {} -> {}", newHosts.size(), newService.getKey(),

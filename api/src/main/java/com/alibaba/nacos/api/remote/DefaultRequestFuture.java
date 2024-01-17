@@ -102,7 +102,7 @@ public class DefaultRequestFuture implements RequestFuture {
             // todo 唤醒其他线程 在什么时候挂起的？在get 结果的时候挂起的
             notifyAll();
         }
-        
+        // 执行回调
         callBacInvoke();
     }
     
@@ -113,12 +113,13 @@ public class DefaultRequestFuture implements RequestFuture {
         synchronized (this) {
             notifyAll();
         }
-        // 执行
+        // 执行回调
         callBacInvoke();
     }
     
     private void callBacInvoke() {
-        // 在 GrpcConnection 中创建的 DefaultRequestFuture 中 requestCallBack 为null
+        // 在 GrpcBiStreamRequestAcceptor#requestBiStream 中 发送 ConnectResetRequest 时 requestCallBack 为null
+        // 在 服务注册推送客户端信息的时候 RpcPushService#pushWithCallback 发送 NotifySubscriberRequest 有指定回调
         if (requestCallBack != null) {
             if (requestCallBack.getExecutor() != null) {
                 requestCallBack.getExecutor().execute(new CallBackHandler());

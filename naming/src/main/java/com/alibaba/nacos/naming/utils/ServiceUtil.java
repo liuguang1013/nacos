@@ -201,11 +201,13 @@ public final class ServiceUtil {
             // filter ips using selector
             // 使用 选择器 过滤 ip
             SelectorManager selectorManager = ApplicationUtils.getBean(SelectorManager.class);
+            // 可以通过 spi 实现自己的实例过滤，如 CMDB 实现近距离访问
             allInstances = selectorManager.select(serviceMetadata.getSelector(), subscriberIp, allInstances);
             filteredResult.setHosts(allInstances);
             
             // will re-compute healthCount
             long newHealthyCount = healthyCount;
+            // 有过滤掉实例
             if (originalTotal != allInstances.size()) {
                 for (com.alibaba.nacos.api.naming.pojo.Instance allInstance : allInstances) {
                     if (allInstance.isHealthy()) {
@@ -213,7 +215,7 @@ public final class ServiceUtil {
                     }
                 }
             }
-            
+            // 获取保护阈值
             float threshold = serviceMetadata.getProtectThreshold();
             if (threshold < 0) {
                 threshold = 0F;
@@ -226,6 +228,7 @@ public final class ServiceUtil {
                             if (!i.isHealthy()) {
                                 i = InstanceUtil.deepCopy(i);
                                 // set all to `healthy` state to protect
+                                // 将所有实例，设置为“健康”状态以进行保护
                                 i.setHealthy(true);
                             } // else deepcopy is unnecessary
                             return i;
@@ -234,7 +237,7 @@ public final class ServiceUtil {
                 filteredResult.setHosts(filteredInstances);
             }
         };
-        // 挑选实例
+        // 开始挑选实例
         return doSelectInstances(serviceInfo, cluster, healthyOnly, enableOnly, filter);
     }
 

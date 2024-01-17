@@ -43,6 +43,9 @@ import static com.alibaba.nacos.api.exception.NacosException.SERVER_ERROR;
  * the type of {@link Selector} and {@link SelectorContextBuilder}.
  * It will provide the {@link Selector} types for web and openapi user to select.
  *
+ * 选择器管理者
+ * 它将提供{@link Selector}类型供web和openapi用户选择。
+ *
  * @author chenglu
  * @date 2021-07-12 18:42
  */
@@ -51,11 +54,15 @@ public class SelectorManager {
     
     /**
      * The relationship of context type and {@link SelectorContextBuilder}.
+     * key：选择器上下文类型 CMDB、none
+     * value：选择器上下文构建者
      */
     private Map<String, SelectorContextBuilder> contextBuilders = new HashMap<>(8);
     
     /**
      * The relationship of selector type and {@link Selector} class.
+     * key：选择器类型    labels、none
+     * value： 类名
      */
     private Map<String, Class<? extends Selector>> selectorTypes = new HashMap<>(8);
     
@@ -64,14 +71,17 @@ public class SelectorManager {
      */
     @PostConstruct
     public void init() {
+        // 初始化
         initSelectorContextBuilders();
         initSelectorTypes();
     }
     
     /**
      * init SelectorContextBuilders.
+     * 初始化 选择器上下文构建者
      */
     private void initSelectorContextBuilders() {
+        //通过 spi 加载 CmdbSelectorContextBuilder、NoneSelectorContextBuilder
         Collection<SelectorContextBuilder> selectorContextBuilders = NacosServiceLoader.load(SelectorContextBuilder.class);
         for (SelectorContextBuilder selectorContextBuilder : selectorContextBuilders) {
             if (contextBuilders.containsKey(selectorContextBuilder.getContextType())) {
@@ -79,6 +89,7 @@ public class SelectorManager {
                         selectorContextBuilder.getContextType());
                 continue;
             }
+
             contextBuilders.put(selectorContextBuilder.getContextType(), selectorContextBuilder);
             Loggers.SRV_LOG.info("[SelectorManager] Load SelectorContextBuilder({}) contextType({}) successfully.", selectorContextBuilder.getClass(),
                     selectorContextBuilder.getContextType());
@@ -87,8 +98,12 @@ public class SelectorManager {
     
     /**
      * init SelectorTypes. The subclass of {@link Selector} must have public access default constructor.
+     * 初始化选择器的类型
+     * {@link Selector}的子类必须具有公共访问默认构造函数。
+     *
      */
     private void initSelectorTypes() {
+        ///通过 spi 加载 LabelSelector、NoneSelector
         Collection<Selector> selectors = NacosServiceLoader.load(Selector.class);
         for (Selector selector : selectors) {
             if (selectorTypes.containsKey(selector.getType())) {

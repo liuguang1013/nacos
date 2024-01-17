@@ -173,7 +173,7 @@ public class NamingClientProxyDelegate implements NamingClientProxy {
         NAMING_LOGGER.info("[SUBSCRIBE-SERVICE] service:{}, group:{}, clusters:{} ", serviceName, groupName, clusters);
         // groupName@@serviceName
         String serviceNameWithGroup = NamingUtils.getGroupedName(serviceName, groupName);
-        //  ${groupName}@@${groupName}@@${clusters}
+        //  ${groupName}@@${serviceName}@@${clusters}
         String serviceKey = ServiceInfo.getKey(serviceNameWithGroup, clusters);
         // 服务信息更新服务，添加定时更新任务
         serviceInfoUpdateService.scheduleUpdateIfAbsent(serviceName, groupName, clusters);

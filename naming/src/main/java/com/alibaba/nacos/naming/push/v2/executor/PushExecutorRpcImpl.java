@@ -49,14 +49,17 @@ public class PushExecutorRpcImpl implements PushExecutor {
     @Override
     public void doPushWithCallback(String clientId, Subscriber subscriber, PushDataWrapper data,
             NamingPushCallback callBack) {
+        // 获取 服务信息，会对服务进行筛选过滤
         ServiceInfo actualServiceInfo = getServiceInfo(data, subscriber);
+        // 设置真正的服务信息
         callBack.setActualServiceInfo(actualServiceInfo);
+        // 构建 NotifySubscriberRequest 请求， 通过 RpcPushService 调用 connectionManager 获取连接，发送 grpc 请求
         pushService.pushWithCallback(clientId, NotifySubscriberRequest.buildNotifySubscriberRequest(actualServiceInfo),
                 callBack, GlobalExecutor.getCallbackExecutor());
     }
 
     /**
-     * 获取 服务信息
+     * 获取 服务信息，会对服务进行筛选过滤
      * @param data
      * @param subscriber
      * @return

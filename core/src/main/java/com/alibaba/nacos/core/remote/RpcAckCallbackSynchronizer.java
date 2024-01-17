@@ -81,7 +81,7 @@ public class RpcAckCallbackSynchronizer {
      */
     public static void syncCallback(String connectionId, String requestId, DefaultRequestFuture defaultPushFuture)
             throws NacosException {
-        // 初始化 context
+        // 初始化 context：如果请求id 的缓存不存在，缓存该连接的 requestId 和 回调信息
         Map<String, DefaultRequestFuture> stringDefaultPushFutureMap = initContextIfNecessary(connectionId);
         
         if (!stringDefaultPushFutureMap.containsKey(requestId)) {

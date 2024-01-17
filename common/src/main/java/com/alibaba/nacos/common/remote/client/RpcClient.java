@@ -108,7 +108,7 @@ public abstract class RpcClient implements Closeable {
     /**
      * handlers to process server push request.
      * 处理 服务端 推送的请求的列表，
-     * 实际有： NamingPushRequestHandler 处理 NotifySubscriberRequest 请求、
+     * 实际有： NamingPushRequestHandler 处理 NotifySubscriberRequest 请求    在NamingGrpcClientProxy 初始化添加
      *      匿名内部类处理 ClientDetectionRequest 请求
      *      匿名内部类处理 ConnectResetRequest 请求
      *      this.ConnectResetRequestHandler 连接请求

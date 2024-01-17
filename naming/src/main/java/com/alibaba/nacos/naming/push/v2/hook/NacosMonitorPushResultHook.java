@@ -22,6 +22,7 @@ import com.alibaba.nacos.naming.pojo.Subscriber;
 
 /**
  * Nacos naming monitor push result hook.
+ * Nacos命名监视器推送结果钩子。
  *
  * @author xiweng.yy
  */

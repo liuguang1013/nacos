@@ -112,6 +112,8 @@ public class PushExecuteTask extends AbstractExecuteTask {
         /**
          * The actual pushed service info, the host list of service info may be changed by selector. Detail see
          * implement of {@link com.alibaba.nacos.naming.push.v2.executor.PushExecutor}.
+         * 实际推送的服务信息，服务信息的主机列表可以通过选择器更改。
+         * 详情请参见{@link com.alibaba.nacos.naming.push.v2.executor.PushExecutor } 的实现。
          */
         private ServiceInfo actualServiceInfo;
         
@@ -129,12 +131,18 @@ public class PushExecuteTask extends AbstractExecuteTask {
         public long getTimeout() {
             return PushConfig.getInstance().getPushTaskTimeout();
         }
-        
+
+        /**
+         * 成功推送客户端，服务的最新实例信息后
+         */
         @Override
         public void onSuccess() {
             long pushFinishTime = System.currentTimeMillis();
+            // 网络层面：计算 推送过程花费的时间
             long pushCostTimeForNetWork = pushFinishTime - executeStartTime;
+            // 推送层面：延迟任务上次处理的时间 距离这次成功的间隔
             long pushCostTimeForAll = pushFinishTime - delayTask.getLastProcessTime();
+            // 服务层面：服务更新时间间隔
             long serviceLevelAgreementTime = pushFinishTime - service.getLastUpdatedTime();
             if (isPushToAll) {
                 Loggers.PUSH
@@ -147,9 +155,12 @@ public class PushExecuteTask extends AbstractExecuteTask {
                                 pushCostTimeForNetWork, pushCostTimeForAll, subscriber.getIp(), service,
                                 serviceInfo.getHosts().size(), actualServiceInfo.getHosts().size());
             }
+            // 创建推送结果对象
             PushResult result = PushResult
                     .pushSuccess(service, clientId, actualServiceInfo, subscriber, pushCostTimeForNetWork,
                             pushCostTimeForAll, serviceLevelAgreementTime, isPushToAll);
+            // 发布 PushServiceTraceEvent 事件
+            // 没看
             NotifyCenter.publishEvent(getPushServiceTraceEvent(pushFinishTime, result));
             PushResultHookHolder.getInstance().pushSuccess(result);
         }
