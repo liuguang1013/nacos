@@ -50,7 +50,11 @@ public class ServiceInfoUpdateService implements Closeable {
     private static final long DEFAULT_DELAY = 1000L;
     
     private static final int DEFAULT_UPDATE_CACHE_TIME_MULTIPLE = 6;
-    
+
+    /**
+     * key：${groupName}@@${serviceName}@@${clusters}
+     * value：
+     */
     private final Map<String, ScheduledFuture<?>> futureMap = new HashMap<>();
     
     private final ServiceInfoHolder serviceInfoHolder;
@@ -107,8 +111,10 @@ public class ServiceInfoUpdateService implements Closeable {
     public void scheduleUpdateIfAbsent(String serviceName, String groupName, String clusters) {
         // 判断是否是异步查询 订阅服务
         if (!asyncQuerySubscribeService) {
+            // 同步查询 直接返回
             return;
         }
+        // 开始异步查询
         // 获取 serviceKey：${groupName}@@${serviceName}@@${clusters}
         String serviceKey = ServiceInfo.getKey(NamingUtils.getGroupedName(serviceName, groupName), clusters);
         // 存在 ，直接返回
@@ -129,6 +135,7 @@ public class ServiceInfoUpdateService implements Closeable {
     }
     
     private synchronized ScheduledFuture<?> addTask(UpdateTask task) {
+        // 延迟 1s 后执行 一次
         return executor.schedule(task, DEFAULT_DELAY, TimeUnit.MILLISECONDS);
     }
     
@@ -207,7 +214,7 @@ public class ServiceInfoUpdateService implements Closeable {
                 ServiceInfo serviceObj = serviceInfoHolder.getServiceInfoMap().get(serviceKey);
                 // 未获取到
                 if (serviceObj == null) {
-                    // 向服务端获取服务信息
+                    // 向服务端获取全部提供服务的实例信息
                     serviceObj = namingClientProxy.queryInstancesOfService(serviceName, groupName, clusters, 0, false);
                     serviceInfoHolder.processServiceInfo(serviceObj);
                     lastRefTime = serviceObj.getLastRefTime();

@@ -47,6 +47,7 @@ import java.util.concurrent.ConcurrentMap;
 public class ClientServiceIndexesManager extends SmartSubscriber {
 
     /**
+     * 当 服务注册的时候，会向该缓存中添加数据
      * key ： Service 服务对象
      * value： grpc 的 connectionId 的 set 集合
      */

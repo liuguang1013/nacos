@@ -284,6 +284,7 @@ public class FailoverReactor implements Closeable {
         @Override
         public void run() {
             Map<String, ServiceInfo> map = serviceInfoHolder.getServiceInfoMap();
+            // 遍历 服务信息，依次持久化到磁盘
             for (Map.Entry<String, ServiceInfo> entry : map.entrySet()) {
                 ServiceInfo serviceInfo = entry.getValue();
                 // 以下服务名 不持久化
@@ -294,7 +295,7 @@ public class FailoverReactor implements Closeable {
                         .equals(serviceInfo.getName(), UtilAndComs.ALL_HOSTS)) {
                     continue;
                 }
-                
+
                 DiskCache.write(serviceInfo, failoverDir);
             }
         }

@@ -42,7 +42,9 @@ import static com.alibaba.nacos.naming.constants.ClientConstants.REVISION;
  * @author xiweng.yy
  */
 public abstract class AbstractClient implements Client {
-    
+    /**
+     * 缓存 不包含实例信息的服务对象 和 实例发布信息对象 的关系
+     */
     protected final ConcurrentHashMap<Service, InstancePublishInfo> publishers = new ConcurrentHashMap<>(16, 0.75f, 1);
     
     protected final ConcurrentHashMap<Service, Subscriber> subscribers = new ConcurrentHashMap<>(16, 0.75f, 1);
@@ -77,6 +79,7 @@ public abstract class AbstractClient implements Client {
                 MetricsMonitor.incrementInstanceCount();
             }
         }
+        // ClientEvent.ClientChangedEvent 发布客户端改变事件
         NotifyCenter.publishEvent(new ClientEvent.ClientChangedEvent(this));
         Loggers.SRV_LOG.info("Client change for service {}, {}", service, getClientId());
         return true;

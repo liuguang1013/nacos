@@ -69,9 +69,10 @@ public class EphemeralClientOperationServiceImpl implements ClientOperationServi
         if (!clientIsLegal(client, clientId)) {
             return;
         }
-        // 构建实例：属性复制
+        // 属性复制构建推送实例对象：这个对象在 查询服务所有的实例独行的时候有用到，实际上这就是一个实例信息
         InstancePublishInfo instanceInfo = getPublishInfo(instance);
         client.addServiceInstance(singleton, instanceInfo);
+
         client.setLastUpdatedTime();
         client.recalculateRevision();
         // 发布客户端注册服务

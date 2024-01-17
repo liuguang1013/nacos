@@ -179,7 +179,9 @@ public class NamingClientProxyDelegate implements NamingClientProxy {
         serviceInfoUpdateService.scheduleUpdateIfAbsent(serviceName, groupName, clusters);
         //
         ServiceInfo result = serviceInfoHolder.getServiceInfoMap().get(serviceKey);
+        // 不存在 服务信息 或者 未订阅该服务
         if (null == result || !isSubscribed(serviceName, groupName, clusters)) {
+            // 触发订阅服务
             result = grpcClientProxy.subscribe(serviceName, groupName, clusters);
         }
         serviceInfoHolder.processServiceInfo(result);

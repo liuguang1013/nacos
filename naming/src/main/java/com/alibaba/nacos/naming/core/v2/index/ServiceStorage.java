@@ -58,6 +58,9 @@ public class ServiceStorage {
     private final NamingMetadataManager metadataManager;
 
     /**
+     * 缓存 Service 和 ServiceInfo 的关系，
+     * 两个对象最重要的区别 ServiceInfo 中保存了提供服务的实例信息
+     *
      * key： Service 对象
      * value： ServiceInfo 对象
      */
@@ -90,7 +93,12 @@ public class ServiceStorage {
         // 在服务数据索引对象中，获取服务对象，不存在 获取
         return serviceDataIndexes.containsKey(service) ? serviceDataIndexes.get(service) : getPushData(service);
     }
-    
+
+    /**
+     * 获取推送数据
+     * @param service
+     * @return
+     */
     public ServiceInfo getPushData(Service service) {
         // Service 对象 转换为 ServiceInfo 对象
         ServiceInfo result = emptyServiceInfo(service);
@@ -123,8 +131,11 @@ public class ServiceStorage {
     private List<Instance> getAllInstancesFromIndex(Service service) {
         Set<Instance> result = new HashSet<>();
         Set<String> clusters = new HashSet<>();
+        // 服务索引管理者 获取所有注册服务的客户端 id的列表
         for (String each : serviceIndexesManager.getAllClientsRegisteredService(service)) {
+            // 获取实例的推送信息对象
             Optional<InstancePublishInfo> instancePublishInfo = getInstanceInfo(each, service);
+
             if (instancePublishInfo.isPresent()) {
                 InstancePublishInfo publishInfo = instancePublishInfo.get();
                 //If it is a BatchInstancePublishInfo type, it will be processed manually and added to the instance list
@@ -162,6 +173,7 @@ public class ServiceStorage {
     }
     
     private Optional<InstancePublishInfo> getInstanceInfo(String clientId, Service service) {
+        // 获取客户端对象
         Client client = clientManager.getClient(clientId);
         if (null == client) {
             return Optional.empty();
