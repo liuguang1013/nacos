@@ -28,7 +28,11 @@ public class DistroData {
     private DistroKey distroKey;
     
     private DataOperation type;
-    
+
+    /**
+     *  将 DistroClientVerifyInfo 客户端认证信息 序列化成 字节数组
+     *  将 ClientSyncData 客户端同步数据序列化成字节数组
+     */
     private byte[] content;
     
     public DistroData() {

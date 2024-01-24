@@ -24,9 +24,15 @@ import java.util.Objects;
  * @author xiweng.yy
  */
 public class DistroKey {
-    
+
+    /**
+     * 资源 key ： 客户端的连接 ID
+     */
     private String resourceKey;
-    
+
+    /**
+     * 资源类型：Nacos:Naming:v2:ClientData
+     */
     private String resourceType;
     
     private String targetServer;

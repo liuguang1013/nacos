@@ -42,11 +42,21 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class DistroProtocol {
-    
+
+    /**
+     * 服务端成员 管理者：加载其他客户端配置，并建立连接
+     */
     private final ServerMemberManager memberManager;
-    
+
+    /**
+     * Distro 组件持有者：
+     */
     private final DistroComponentHolder distroComponentHolder;
-    
+
+    /**
+     *  Distro 任务引擎持有者
+     *
+     */
     private final DistroTaskEngineHolder distroTaskEngineHolder;
     
     private volatile boolean isInitialized = false;
@@ -56,19 +66,24 @@ public class DistroProtocol {
         this.memberManager = memberManager;
         this.distroComponentHolder = distroComponentHolder;
         this.distroTaskEngineHolder = distroTaskEngineHolder;
+        // 开始 Distro 任务
         startDistroTask();
     }
     
     private void startDistroTask() {
+        // 判断是否是单机
         if (EnvUtil.getStandaloneMode()) {
             isInitialized = true;
             return;
         }
+        // 客户端认证任务：以固定频率 默认5s，将本机负责的所有客户端（主要是 clientId、revision）数据，向其他服务端发送依次，验证revision 是否相同
         startVerifyTask();
+        // 加载数据任务：执行一次，
         startLoadTask();
     }
     
     private void startLoadTask() {
+        // 创建回调
         DistroCallback loadCallback = new DistroCallback() {
             @Override
             public void onSuccess() {
@@ -80,11 +95,13 @@ public class DistroProtocol {
                 isInitialized = false;
             }
         };
+        // 数据加载任务，执行一次
         GlobalExecutor.submitLoadDataTask(
                 new DistroLoadDataTask(memberManager, distroComponentHolder, DistroConfig.getInstance(), loadCallback));
     }
     
     private void startVerifyTask() {
+        // 初始延迟后，以固定频率执行，默认时间是 5s
         GlobalExecutor.schedulePartitionDataTimedSync(new DistroVerifyTimedTask(memberManager, distroComponentHolder,
                         distroTaskEngineHolder.getExecuteWorkersManager()),
                 DistroConfig.getInstance().getVerifyIntervalMillis());
@@ -112,6 +129,7 @@ public class DistroProtocol {
      * @param delay     delay time for sync
      */
     public void sync(DistroKey distroKey, DataOperation action, long delay) {
+        // 遍历其他服务端
         for (Member each : memberManager.allMembersWithoutSelf()) {
             syncToTarget(distroKey, action, each.getAddress(), delay);
         }
@@ -170,11 +188,13 @@ public class DistroProtocol {
             Loggers.DISTRO.warn("[DISTRO] Can't find data process for received data {}", resourceType);
             return false;
         }
+        // 处理 同步客户端数据
         return dataProcessor.processData(distroData);
     }
     
     /**
      * Receive verify data, find processor to process.
+     * 接收验证数据，找到处理器进行处理。
      *
      * @param distroData    verify data
      * @param sourceAddress source server address, might be get data from source server
@@ -185,12 +205,15 @@ public class DistroProtocol {
             Loggers.DISTRO.debug("[DISTRO] Receive verify data type: {}, key: {}", distroData.getType(),
                     distroData.getDistroKey());
         }
+        // resourceType 值：Nacos:Naming:v2:ClientData
         String resourceType = distroData.getDistroKey().getResourceType();
+        // 获取 DistroClientDataProcessor 客户端数据处理器
         DistroDataProcessor dataProcessor = distroComponentHolder.findDataProcessor(resourceType);
         if (null == dataProcessor) {
             Loggers.DISTRO.warn("[DISTRO] Can't find verify data process for received data {}", resourceType);
             return false;
         }
+        // 处理 其他服务端负责的客户端数据
         return dataProcessor.processVerifyData(distroData, sourceAddress);
     }
     
@@ -212,7 +235,7 @@ public class DistroProtocol {
     
     /**
      * Query all datum snapshot.
-     *
+     * 通过 distro 协议组件管理者，找到数据存储对象，获取 客户端对象
      * @param type datum type
      * @return all datum snapshot
      */

@@ -44,6 +44,8 @@ import static com.alibaba.nacos.naming.constants.ClientConstants.REVISION;
 public abstract class AbstractClient implements Client {
     /**
      * 缓存 不包含实例信息的服务对象 和 实例发布信息对象 的关系
+     * itodo:一个客户端 创建后，不是 应该只提供一种服务吗？ namespace、group、name 不应该都是一个吗？
+     *  解答：此处也会保存 其他服务端负责的服务的实例信息
      */
     protected final ConcurrentHashMap<Service, InstancePublishInfo> publishers = new ConcurrentHashMap<>(16, 0.75f, 1);
     
@@ -72,7 +74,9 @@ public abstract class AbstractClient implements Client {
     
     @Override
     public boolean addServiceInstance(Service service, InstancePublishInfo instancePublishInfo) {
+        // 指标监控增加 实例数量
         if (null == publishers.put(service, instancePublishInfo)) {
+            // 处理实例指标监控信息
             if (instancePublishInfo instanceof BatchInstancePublishInfo) {
                 MetricsMonitor.incrementIpCountWithBatchRegister(instancePublishInfo);
             } else {
@@ -87,13 +91,16 @@ public abstract class AbstractClient implements Client {
     
     @Override
     public InstancePublishInfo removeServiceInstance(Service service) {
+        // 缓存中移除 服务的发布实例信息
         InstancePublishInfo result = publishers.remove(service);
         if (null != result) {
+            // 处理实例指标监控信息
             if (result instanceof BatchInstancePublishInfo) {
                 MetricsMonitor.decrementIpCountWithBatchRegister(result);
             } else {
                 MetricsMonitor.decrementInstanceCount();
             }
+            // ClientEvent.ClientChangedEvent 发布客户端改变事件
             NotifyCenter.publishEvent(new ClientEvent.ClientChangedEvent(this));
         }
         Loggers.SRV_LOG.info("Client remove for service {}, {}", service, getClientId());
@@ -149,6 +156,7 @@ public abstract class AbstractClient implements Client {
         List<InstancePublishInfo> instances = new LinkedList<>();
         List<BatchInstancePublishInfo> batchInstancePublishInfos = new LinkedList<>();
         BatchInstanceData  batchInstanceData = new BatchInstanceData();
+        // 遍历当前客户端 注册的服务
         for (Map.Entry<Service, InstancePublishInfo> entry : publishers.entrySet()) {
             InstancePublishInfo instancePublishInfo = entry.getValue();
             if (instancePublishInfo instanceof BatchInstancePublishInfo) {

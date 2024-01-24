@@ -32,13 +32,24 @@ import java.util.List;
  * @author xiweng.yy
  */
 public class DistroVerifyExecuteTask extends AbstractExecuteTask {
-    
+    /**
+     * 传输代理
+     */
     private final DistroTransportAgent transportAgent;
-    
+
+    /**
+     * 当前客户端负责的客户端对象
+     */
     private final List<DistroData> verifyData;
-    
+
+    /**
+     * 目标服务端：ip：port
+     */
     private final String targetServer;
-    
+
+    /**
+     *  value：Nacos:Naming:v2:ClientData
+     */
     private final String resourceType;
     
     public DistroVerifyExecuteTask(DistroTransportAgent transportAgent, List<DistroData> verifyData,
@@ -51,8 +62,10 @@ public class DistroVerifyExecuteTask extends AbstractExecuteTask {
     
     @Override
     public void run() {
+        // 遍历：客户端连接信息
         for (DistroData each : verifyData) {
             try {
+                // 判断是否支持回调，默认支持
                 if (transportAgent.supportCallbackTransport()) {
                     doSyncVerifyDataWithCallback(each);
                 } else {
@@ -66,6 +79,7 @@ public class DistroVerifyExecuteTask extends AbstractExecuteTask {
     }
     
     private void doSyncVerifyDataWithCallback(DistroData data) {
+        // 同步 认证数据
         transportAgent.syncVerifyData(data, targetServer, new DistroVerifyCallback());
     }
     
@@ -77,6 +91,7 @@ public class DistroVerifyExecuteTask extends AbstractExecuteTask {
         
         @Override
         public void onSuccess() {
+            // 日志输出
             if (Loggers.DISTRO.isDebugEnabled()) {
                 Loggers.DISTRO.debug("[DISTRO] verify data for type {} to {} success", resourceType, targetServer);
             }
@@ -84,6 +99,7 @@ public class DistroVerifyExecuteTask extends AbstractExecuteTask {
         
         @Override
         public void onFailed(Throwable throwable) {
+            // 记录失败次数
             DistroRecord distroRecord = DistroRecordsHolder.getInstance().getRecord(resourceType);
             distroRecord.verifyFail();
             if (Loggers.DISTRO.isDebugEnabled()) {

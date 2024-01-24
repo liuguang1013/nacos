@@ -800,7 +800,7 @@ public abstract class RpcClient implements Closeable {
     
     /**
      * send async request.
-     *
+     * 发送异步请求： 1、服务端成员间 客户端数据认证请求，发送异步请求
      * @param request request.
      */
     public void asyncRequest(Request request, RequestCallBack callback) throws NacosException {
@@ -808,11 +808,13 @@ public abstract class RpcClient implements Closeable {
     
         Throwable exceptionToThrow = null;
         long start = System.currentTimeMillis();
+        // 检查 小于 重试次数 并且 小于回调超时时间
         while (retryTimes < rpcClientConfig.retryTimes() && System.currentTimeMillis() < start + callback
                 .getTimeout()) {
             boolean waitReconnect = false;
             try {
                 if (this.currentConnection == null || !isRunning()) {
+                    // 等待重新连接标识：当前客户端 连接对象为空，并且未运行状态
                     waitReconnect = true;
                     throw new NacosException(NacosException.CLIENT_INVALID_PARAM, "Client not connected.");
                 }
@@ -822,6 +824,7 @@ public abstract class RpcClient implements Closeable {
                 if (waitReconnect) {
                     try {
                         // wait client to reconnect.
+                        // 等待客户端重连
                         Thread.sleep(Math.min(100, callback.getTimeout() / 3));
                     } catch (Exception exception) {
                         // Do nothing.

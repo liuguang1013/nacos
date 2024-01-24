@@ -40,7 +40,9 @@ public class NacosDelayTaskExecuteEngine extends AbstractNacosTaskExecuteEngine<
     private final ScheduledExecutorService processingExecutor;
 
     /**
-     * key： service 对象
+     * key： key 的作用主要是用来获取 任务处理器
+     *      PushDelayTaskExecuteEngine 放入 service 对象、
+     *      DistroDelayTaskExecuteEngine 放入 DistroKey 对象
      * value： 延迟任务
      */
     protected final ConcurrentHashMap<Object, AbstractDelayTask> tasks;

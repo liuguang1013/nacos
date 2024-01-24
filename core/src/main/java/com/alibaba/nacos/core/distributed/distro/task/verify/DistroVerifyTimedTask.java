@@ -50,11 +50,14 @@ public class DistroVerifyTimedTask implements Runnable {
     @Override
     public void run() {
         try {
+            // 获取其他所有服务端成员对象
             List<Member> targetServer = serverMemberManager.allMembersWithoutSelf();
             if (Loggers.DISTRO.isDebugEnabled()) {
                 Loggers.DISTRO.debug("server list is: {}", targetServer);
             }
+            // 遍历：验证数据存储类型
             for (String each : distroComponentHolder.getDataStorageTypes()) {
+                //each  值   Nacos:Naming:v2:ClientData
                 verifyForDataStorage(each, targetServer);
             }
         } catch (Exception e) {
@@ -65,19 +68,23 @@ public class DistroVerifyTimedTask implements Runnable {
     private void verifyForDataStorage(String type, List<Member> targetServer) {
         DistroDataStorage dataStorage = distroComponentHolder.findDataStorage(type);
         if (!dataStorage.isFinishInitial()) {
+            // 日志输出：数据存储对象未完成初始化
             Loggers.DISTRO.warn("data storage {} has not finished initial step, do not send verify data",
                     dataStorage.getClass().getSimpleName());
             return;
         }
+        // 获取验证数据：将本服务期负责的所有的客户端信息封装成 DistroData 对象
         List<DistroData> verifyData = dataStorage.getVerifyData();
         if (null == verifyData || verifyData.isEmpty()) {
             return;
         }
+        // 遍历 服务端成员对象：通过  Distro 传输代理 对每个其他成员，分别进行每个客户端信息同步
         for (Member member : targetServer) {
             DistroTransportAgent agent = distroComponentHolder.findTransportAgent(type);
             if (null == agent) {
                 continue;
             }
+            // 向执行引擎，添加任务
             executeTaskExecuteEngine.addTask(member.getAddress() + type,
                     new DistroVerifyExecuteTask(agent, verifyData, member.getAddress(), type));
         }

@@ -31,7 +31,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Distro data request handler.
- *
+ * 服务端之间 Distro 协议 数据请求处理器
  * @author xiweng.yy
  */
 @Component
@@ -48,12 +48,15 @@ public class DistroDataRequestHandler extends RequestHandler<DistroDataRequest, 
         try {
             switch (request.getDataOperation()) {
                 case VERIFY:
+                    // 处理验证：Distro 协议类启动后，定时任务：处理验证 其他服务端负责的客户端数据
                     return handleVerify(request.getDistroData(), meta);
                 case SNAPSHOT:
+                    // 处理快照：Distro 协议类启动时，加载数据使用
                     return handleSnapshot();
                 case ADD:
                 case CHANGE:
                 case DELETE:
+                    // 处理同步客户端数据请求
                     return handleSyncData(request.getDistroData());
                 case QUERY:
                     return handleQueryData(request.getDistroData());
@@ -71,6 +74,7 @@ public class DistroDataRequestHandler extends RequestHandler<DistroDataRequest, 
     
     private DistroDataResponse handleVerify(DistroData distroData, RequestMeta meta) {
         DistroDataResponse result = new DistroDataResponse();
+        // 验证 客户端数据
         if (!distroProtocol.onVerify(distroData, meta.getClientIp())) {
             result.setErrorInfo(ResponseCode.FAIL.getCode(), "[DISTRO-FAILED] distro data verify failed");
         }
@@ -79,11 +83,17 @@ public class DistroDataRequestHandler extends RequestHandler<DistroDataRequest, 
     
     private DistroDataResponse handleSnapshot() {
         DistroDataResponse result = new DistroDataResponse();
+        // 在 distro 协议对象中获取 快照信息
         DistroData distroData = distroProtocol.onSnapshot(DistroClientDataProcessor.TYPE);
         result.setDistroData(distroData);
         return result;
     }
-    
+
+    /**
+     * 处理 同步服务实例新增/删除 数据（即客户端连接的新增/删除）
+     * @param distroData
+     * @return
+     */
     private DistroDataResponse handleSyncData(DistroData distroData) {
         DistroDataResponse result = new DistroDataResponse();
         if (!distroProtocol.onReceive(distroData)) {

@@ -37,7 +37,10 @@ public class GlobalExecutor {
     private static final ScheduledExecutorService COMMON_EXECUTOR = ExecutorFactory.Managed
             .newScheduledExecutorService(ClassUtils.getCanonicalName(GlobalExecutor.class), 4,
                     new NameThreadFactory("com.alibaba.nacos.core.common"));
-    
+
+    /**
+     * distro 协议线程池
+     */
     private static final ScheduledExecutorService DISTRO_EXECUTOR = ExecutorFactory.Managed
             .newScheduledExecutorService(ClassUtils.getCanonicalName(GlobalExecutor.class),
                     EnvUtil.getAvailableProcessors(2), new NameThreadFactory("com.alibaba.nacos.core.protocal.distro"));
@@ -79,14 +82,17 @@ public class GlobalExecutor {
     }
     
     public static void submitLoadDataTask(Runnable runnable) {
+        // 执行一次
         DISTRO_EXECUTOR.submit(runnable);
     }
     
     public static void submitLoadDataTask(Runnable runnable, long delay) {
+        // 延迟执行，一次
         DISTRO_EXECUTOR.schedule(runnable, delay, TimeUnit.MILLISECONDS);
     }
     
     public static void schedulePartitionDataTimedSync(Runnable runnable, long interval) {
+        // 初始延迟后，以固定频率执行
         DISTRO_EXECUTOR.scheduleWithFixedDelay(runnable, interval, interval, TimeUnit.MILLISECONDS);
     }
     

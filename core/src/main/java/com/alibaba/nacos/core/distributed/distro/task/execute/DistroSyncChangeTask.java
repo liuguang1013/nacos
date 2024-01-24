@@ -52,10 +52,15 @@ public class DistroSyncChangeTask extends AbstractDistroExecuteTask {
         return getDistroComponentHolder().findTransportAgent(type)
                 .syncData(distroData, getDistroKey().getTargetServer());
     }
-    
+
+    /**
+     * 通过 服务端间的传输代理，异步发送 DistroDataRequest 请求
+     * @param callback callback
+     */
     @Override
     protected void doExecuteWithCallback(DistroCallback callback) {
         String type = getDistroKey().getResourceType();
+        // 获取 Distro 数据
         DistroData distroData = getDistroData(type);
         if (null == distroData) {
             Loggers.DISTRO.warn("[DISTRO] {} with null data to sync, skip", toString());

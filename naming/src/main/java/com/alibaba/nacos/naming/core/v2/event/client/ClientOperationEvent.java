@@ -21,6 +21,11 @@ import com.alibaba.nacos.naming.core.v2.pojo.Service;
 
 /**
  * Operation client event.
+ * 操作客户端事件
+ *  1、注册服务
+ *  2、取消注册
+ *  3、订阅服务
+ *  4、取消订阅
  *
  * @author xiweng.yy
  */

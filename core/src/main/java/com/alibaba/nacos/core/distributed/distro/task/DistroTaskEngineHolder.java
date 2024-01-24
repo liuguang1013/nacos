@@ -31,12 +31,19 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class DistroTaskEngineHolder implements DisposableBean {
-    
+
+    /**
+     *  Distro 延迟任务引擎：继承 NacosDelayTaskExecuteEngine，通过延时任务线程池和阻塞队列实现
+     */
     private final DistroDelayTaskExecuteEngine delayTaskExecuteEngine = new DistroDelayTaskExecuteEngine();
-    
+
+    /**
+     *  Distro 执行任务引擎：继承 NacosExecuteTaskExecuteEngine ，通过 while（true）循环和阻塞队列实现
+     */
     private final DistroExecuteTaskExecuteEngine executeWorkersManager = new DistroExecuteTaskExecuteEngine();
     
     public DistroTaskEngineHolder(DistroComponentHolder distroComponentHolder) {
+        // 为 延迟任务引擎 添加默认的处理器
         DistroDelayTaskProcessor defaultDelayTaskProcessor = new DistroDelayTaskProcessor(this, distroComponentHolder);
         delayTaskExecuteEngine.setDefaultTaskProcessor(defaultDelayTaskProcessor);
     }

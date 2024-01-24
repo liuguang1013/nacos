@@ -43,13 +43,22 @@ import java.util.concurrent.Executor;
 
 /**
  * Distro transport agent for v2.
- *
+ * Distro 服务端请求代理
+ *  1、发送 distro 协议启动时的延迟的认证请求
+ *  2、发送 distro 协议启动时的获取其他服务端的快照的请求
+ *  3、发送 服务实例的新增/删除 的同步数据请求
  * @author xiweng.yy
  */
 public class DistroClientTransportAgent implements DistroTransportAgent {
-    
+
+    /**
+     * 集群间的 rpc 客户端代理
+     */
     private final ClusterRpcClientProxy clusterRpcClientProxy;
-    
+
+    /**
+     * 服务端成员管理对象
+     */
     private final ServerMemberManager memberManager;
     
     public DistroClientTransportAgent(ClusterRpcClientProxy clusterRpcClientProxy,
@@ -62,7 +71,13 @@ public class DistroClientTransportAgent implements DistroTransportAgent {
     public boolean supportCallbackTransport() {
         return true;
     }
-    
+
+    /**
+     * 发送 同步数据的 同步请求
+     * @param data         data
+     * @param targetServer target server
+     * @return
+     */
     @Override
     public boolean syncData(DistroData data, String targetServer) {
         if (isNoExistTarget(targetServer)) {
@@ -84,7 +99,13 @@ public class DistroClientTransportAgent implements DistroTransportAgent {
         }
         return false;
     }
-    
+
+    /**
+     * 发送 同步数据的 异步请求： 通过 distro 立即执行引擎发送该类请求
+     * @param data         data
+     * @param targetServer target server
+     * @param callback     callback
+     */
     @Override
     public void syncData(DistroData data, String targetServer, DistroCallback callback) {
         if (isNoExistTarget(targetServer)) {
@@ -130,15 +151,24 @@ public class DistroClientTransportAgent implements DistroTransportAgent {
         }
         return false;
     }
-    
+
+    /**
+     * 同步认证数据 异步请求：
+     * @param verifyData   verify data
+     * @param targetServer target server
+     * @param callback     callback
+     */
     @Override
     public void syncVerifyData(DistroData verifyData, String targetServer, DistroCallback callback) {
+        // 发送认证数据前，检查服务端成员是否存在
         if (isNoExistTarget(targetServer)) {
             callback.onSuccess();
             return;
         }
+        // 创建 DistroDataRequest 认证类型请求
         DistroDataRequest request = new DistroDataRequest(verifyData, DataOperation.VERIFY);
         Member member = memberManager.find(targetServer);
+        // 检查 服务端成员是否处于不健康状态
         if (checkTargetServerStatusUnhealthy(member)) {
             Loggers.DISTRO
                     .warn("[DISTRO] Cancel distro verify caused by target server {} unhealthy, key: {}", targetServer,
@@ -147,8 +177,10 @@ public class DistroClientTransportAgent implements DistroTransportAgent {
             return;
         }
         try {
+            // 对回调进行包装：
             DistroVerifyCallbackWrapper wrapper = new DistroVerifyCallbackWrapper(targetServer,
                     verifyData.getDistroKey().getResourceKey(), callback, member);
+            // 发送异步请求
             clusterRpcClientProxy.asyncRequest(member, request, wrapper);
         } catch (NacosException nacosException) {
             callback.onFailed(nacosException);
@@ -181,17 +213,26 @@ public class DistroClientTransportAgent implements DistroTransportAgent {
             throw new DistroException("[DISTRO-FAILED] Get distro data failed! ", e);
         }
     }
-    
+
+    /**
+     * 发送获取其他服务端的客户端数据的 同步请求：Distro 类初始化加载时调用
+     * @param targetServer target server.
+     * @return
+     */
     @Override
     public DistroData getDatumSnapshot(String targetServer) {
+        // 获取成员对象
         Member member = memberManager.find(targetServer);
+        // 检查 请求服务端的 健康状态：服务端之间的连接也是通过 grpc 长连接，会有心跳请求，当 3次请求失败后，会标记为不健康状态
         if (checkTargetServerStatusUnhealthy(member)) {
             throw new DistroException(
                     String.format("[DISTRO] Cancel get snapshot caused by target server %s unhealthy", targetServer));
         }
+        // 创建 DistroDataRequest 请求，类型是 快照获取
         DistroDataRequest request = new DistroDataRequest();
         request.setDataOperation(DataOperation.SNAPSHOT);
         try {
+            // 发送同步请求
             Response response = clusterRpcClientProxy
                     .sendRequest(member, request, DistroConfig.getInstance().getLoadDataTimeoutMillis());
             if (checkResponse(response)) {
@@ -241,6 +282,7 @@ public class DistroClientTransportAgent implements DistroTransportAgent {
         
         @Override
         public void onResponse(Response response) {
+            // 记录成功或者失败的次数
             if (checkResponse(response)) {
                 NamingTpsMonitor.distroSyncSuccess(member.getAddress(), member.getIp());
                 distroCallback.onSuccess();

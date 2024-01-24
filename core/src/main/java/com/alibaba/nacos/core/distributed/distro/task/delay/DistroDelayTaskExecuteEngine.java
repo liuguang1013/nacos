@@ -45,6 +45,7 @@ public class DistroDelayTaskExecuteEngine extends NacosDelayTaskExecuteEngine {
     }
     
     private Object getActualKey(Object key) {
+        //DistroKey 类型是字符串： Nacos:Naming:v2:ClientData
         return key instanceof DistroKey ? ((DistroKey) key).getResourceType() : key;
     }
 }

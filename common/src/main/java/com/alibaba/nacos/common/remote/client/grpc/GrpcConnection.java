@@ -158,9 +158,11 @@ public class GrpcConnection extends Connection {
                 Response response = (Response) GrpcUtils.parse(grpcResponse);
                 
                 if (response != null) {
+                    // 验证失败
                     if (response instanceof ErrorResponse) {
                         requestCallBack.onException(new NacosException(response.getErrorCode(), response.getMessage()));
                     } else {
+                        // 验证成功
                         requestCallBack.onResponse(response);
                     }
                 } else {

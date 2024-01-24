@@ -29,13 +29,29 @@ import java.util.Set;
  */
 @Component
 public class DistroComponentHolder {
-    
+
+    /**
+     * key： Nacos:Naming:v2:ClientData
+     * value：
+     */
     private final Map<String, DistroTransportAgent> transportAgentMap = new HashMap<>();
-    
+
+    /**
+     * key： Nacos:Naming:v2:ClientData
+     * value：
+     */
     private final Map<String, DistroDataStorage> dataStorageMap = new HashMap<>();
-    
+
+    /**
+     * key： Nacos:Naming:v2:ClientData
+     * value：
+     */
     private final Map<String, DistroFailedTaskHandler> failedTaskHandlerMap = new HashMap<>();
-    
+
+    /**
+     * key： Nacos:Naming:v2:ClientData
+     * value：
+     */
     private final Map<String, DistroDataProcessor> dataProcessorMap = new HashMap<>();
     
     public DistroTransportAgent findTransportAgent(String type) {

@@ -18,7 +18,9 @@ package com.alibaba.nacos.core.distributed.distro.component;
 
 /**
  * Distro callback.
- *
+ * Distro 协议，服务端间发送异步请求时候使用
+ * 1、DistroVerifyCallback：当 DistroProtocol 对象初始化的时候，延迟任务执行服务期间负责的客户端的验证，发送 DistroDataRequest VERIFY 类型的时候使用
+ * 2、匿名内部类：当 DistroProtocol 对象初始化的时候，加载任务时使用
  * @author xiweng.yy
  */
 public interface DistroCallback {

@@ -30,7 +30,7 @@ import javax.annotation.PostConstruct;
 
 /**
  * Distro component registry for v2.
- *
+ * Distro 组件注册
  * @author xiweng.yy
  */
 @Component
@@ -65,10 +65,14 @@ public class DistroClientComponentRegistry {
      */
     @PostConstruct
     public void doRegister() {
+        //  Distro 协议 客户端数据处理器：监听客户端事件，将事件同步到其他服务端
         DistroClientDataProcessor dataProcessor = new DistroClientDataProcessor(clientManager, distroProtocol);
+        //  Distro 协议 传输代理：
         DistroTransportAgent transportAgent = new DistroClientTransportAgent(clusterRpcClientProxy,
                 serverMemberManager);
+        // Distro 协议 客户端任务失败处理器：重试任务
         DistroClientTaskFailedHandler taskFailedHandler = new DistroClientTaskFailedHandler(taskEngineHolder);
+
         componentHolder.registerDataStorage(DistroClientDataProcessor.TYPE, dataProcessor);
         componentHolder.registerDataProcessor(dataProcessor);
         componentHolder.registerTransportAgent(DistroClientDataProcessor.TYPE, transportAgent);

@@ -48,6 +48,8 @@ import java.util.concurrent.TimeUnit;
 public class ConnectionBasedClientManager extends ClientConnectionEventListener implements ClientManager {
 
     /**
+     * 缓存连接到该服务端的客户端连接信息
+     * 也缓存 其他的服务端负责的客户端信息
      * key ConnectionId 连接id
      * value ConnectionBasedClient 对象
      */
@@ -72,12 +74,12 @@ public class ConnectionBasedClientManager extends ClientConnectionEventListener 
         attributes.addClientAttribute(ClientConstants.CONNECTION_TYPE, connect.getMetaInfo().getConnectType());
         // 设置客户端属性：连接元数据
         attributes.addClientAttribute(ClientConstants.CONNECTION_METADATA, connect.getMetaInfo());
-
+        // 客户端连接： 创建 ConnectionBasedClient 客户端对象
         clientConnected(connect.getMetaInfo().getConnectionId(), attributes);
     }
 
     /**
-     *
+     * 使用工厂类，创建 ConnectionBasedClient 客户端对象
      * @param clientId new client id        客户端 ip
      * @param attributes client attributes, which can help create client    客户端属性
      * @return
@@ -103,8 +105,12 @@ public class ConnectionBasedClientManager extends ClientConnectionEventListener 
     
     @Override
     public boolean syncClientConnected(String clientId, ClientAttributes attributes) {
+        // 获取 客户端属性中 connectionType 连接类型，
+        // 响应返回时候，未带该参数：详见 AbstractClient#generateSyncData()方法
         String type = attributes.getClientAttribute(ClientConstants.CONNECTION_TYPE);
+        // 传参为null ，返回默认 ConnectionBasedClientFactory
         ClientFactory clientFactory = ClientFactoryHolder.getInstance().findClientFactory(type);
+        // 创建本服务端不负责的客户端对象，触发客户度连接流程，放入 this 管理者缓存
         return clientConnected(clientFactory.newSyncedClient(clientId, attributes));
     }
     
@@ -149,10 +155,13 @@ public class ConnectionBasedClientManager extends ClientConnectionEventListener 
     
     @Override
     public boolean verifyClient(DistroClientVerifyInfo verifyData) {
+        // 获取客户端
         ConnectionBasedClient client = clients.get(verifyData.getClientId());
         if (null != client) {
             // remote node of old version will always verify with zero revision
+            // 旧版本的远程节点将始终以零修订进行验证
             if (0 == verifyData.getRevision() || client.getRevision() == verifyData.getRevision()) {
+                // 设置
                 client.setLastRenewTime();
                 return true;
             } else {

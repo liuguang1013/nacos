@@ -48,7 +48,7 @@ import static com.alibaba.nacos.api.exception.NacosException.CLIENT_INVALID_PARA
 
 /**
  * cluster rpc client proxy.
- * 集群客户端代理
+ * 集群客户端代理：用于服务端成员之间的 rpc 通信
  *
  * @author liuzunfei
  * @version $Id: ClusterRpcClientProxy.java, v 0.1 2020年08月11日 2:11 PM liuzunfei Exp $
@@ -190,6 +190,7 @@ public class ClusterRpcClientProxy extends MemberChangeListener {
     
     /**
      * send request to member.
+     * 同步请求
      *
      * @param member  member of server.
      * @param request request.
@@ -207,6 +208,7 @@ public class ClusterRpcClientProxy extends MemberChangeListener {
     
     /**
      * aync send request to member with callback.
+     * 异步请求，带有回调
      *
      * @param member   member of server.
      * @param request  request.

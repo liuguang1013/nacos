@@ -21,7 +21,10 @@ import com.alibaba.nacos.naming.core.v2.client.Client;
 
 /**
  * Client event.
- *
+ * 客户端事件
+ *  1、客户端改变：添加客户端、移除服务
+ *  2、客户端断开连接
+ *  3、客户端认证失败事件
  * @author xiweng.yy
  */
 public class ClientEvent extends Event {
