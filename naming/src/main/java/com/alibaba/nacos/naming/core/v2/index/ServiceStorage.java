@@ -65,7 +65,12 @@ public class ServiceStorage {
      * value： ServiceInfo 对象
      */
     private final ConcurrentMap<Service, ServiceInfo> serviceDataIndexes;
-    
+
+    /**
+     *  缓存 Service 和 clusters 的关系，
+     *   key： Service 对象
+     *   value ： 集群名
+     */
     private final ConcurrentMap<Service, Set<String>> serviceClusterIndex;
 
     /**
@@ -100,14 +105,14 @@ public class ServiceStorage {
      * @return
      */
     public ServiceInfo getPushData(Service service) {
-        // Service 对象 转换为 ServiceInfo 对象
+        // Service 对象 转换为 ServiceInfo 对象，对象中不包含提供服务的实例列表信息
         ServiceInfo result = emptyServiceInfo(service);
         if (!ServiceManager.getInstance().containSingleton(service)) {
             return result;
         }
         // 在 服务管理者中 获取 服务对象
         Service singleton = ServiceManager.getInstance().getSingleton(service);
-        // 为服务对象 设置 实例对象
+        // 为服务对象 设置 实例对象列表
         result.setHosts(getAllInstancesFromIndex(singleton));
         // 服务端数据索引，缓存 服务对象
         serviceDataIndexes.put(singleton, result);
@@ -144,6 +149,7 @@ public class ServiceStorage {
                     List<Instance> batchInstance = parseBatchInstance(service, batchInstancePublishInfo, clusters);
                     result.addAll(batchInstance);
                 } else {
+                    // 将 instancePublishInfo 转换为 instance 实例对象
                     Instance instance = parseInstance(service, instancePublishInfo.get());
                     result.add(instance);
                     clusters.add(instance.getClusterName());

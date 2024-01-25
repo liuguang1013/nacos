@@ -220,6 +220,7 @@ public final class ServiceUtil {
             if (threshold < 0) {
                 threshold = 0F;
             }
+            // threshold 保护阈值的作用：
             if ((float) newHealthyCount / allInstances.size() <= threshold) {
                 Loggers.SRV_LOG.warn("protect threshold reached, return all ips, service: {}", filteredResult.getName());
                 filteredResult.setReachProtectionThreshold(true);
@@ -237,7 +238,7 @@ public final class ServiceUtil {
                 filteredResult.setHosts(filteredInstances);
             }
         };
-        // 开始挑选实例
+        // 开始挑选实例：
         return doSelectInstances(serviceInfo, cluster, healthyOnly, enableOnly, filter);
     }
 
@@ -268,6 +269,7 @@ public final class ServiceUtil {
         long healthyCount = 0L;
         // The instance list won't be modified almost time.
         // 实例列表几乎不会被修改。
+        // 只存储健康实例
         List<com.alibaba.nacos.api.naming.pojo.Instance> filteredInstances = new LinkedList<>();
         // The instance list of all filtered by cluster/enabled condition.
         // 被集群、已启用条件 过滤后的所有实例列表

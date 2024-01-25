@@ -59,9 +59,10 @@ public class ServiceQueryRequestHandler extends RequestHandler<ServiceQueryReque
 
         String cluster = null == request.getCluster() ? "" : request.getCluster();
         boolean healthyOnly = request.isHealthyOnly();
-        //
+        // 获取服务信息对象：包含服务的所有实例信息
         ServiceInfo result = serviceStorage.getData(service);
         ServiceMetadata serviceMetadata = metadataManager.getServiceMetadata(service).orElse(null);
+        // 对获取的实例列表进行过滤，判断实例是否健康、是否属于请求客户端所在集群，还可能会有额外的 CMDB 过滤处理
         result = ServiceUtil.selectInstancesWithHealthyProtection(result, serviceMetadata, cluster, healthyOnly, true,
                 meta.getClientIp());
         return QueryServiceResponse.buildSuccessResponse(result);

@@ -71,12 +71,12 @@ public class EphemeralClientOperationServiceImpl implements ClientOperationServi
         }
         // 属性复制构建推送实例对象：这个对象在 查询服务所有的实例独行的时候有用到，实际上这就是一个实例信息
         InstancePublishInfo instanceInfo = getPublishInfo(instance);
-        // 添加服务实例
+        // 在 服务端 之间进行客户端数据同步，发布 ClientEvent.ClientChangedEvent 事件
         client.addServiceInstance(singleton, instanceInfo);
 
         client.setLastUpdatedTime();
         client.recalculateRevision();
-        // 发布客户端注册服务
+        // 在 当前服务端的 ClientServiceIndexesManager 中同步数据，，同时 发布 ServiceEvent.ServiceChangedEvent 通知各个客户端 提供服务的实例发生变化
         NotifyCenter.publishEvent(new ClientOperationEvent.ClientRegisterServiceEvent(singleton, clientId));
         //
         NotifyCenter
