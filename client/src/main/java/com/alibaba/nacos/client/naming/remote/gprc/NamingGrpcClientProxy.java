@@ -298,6 +298,7 @@ public class NamingGrpcClientProxy extends AbstractNamingClientProxy {
                 request.setSelector(JacksonUtils.toJson(selector));
             }
         }
+
         ServiceListResponse response = requestToServer(request, ServiceListResponse.class);
         ListView<String> result = new ListView<>();
         result.setCount(response.getCount());
@@ -329,6 +330,7 @@ public class NamingGrpcClientProxy extends AbstractNamingClientProxy {
                 true);
 
         SubscribeServiceResponse response = requestToServer(request, SubscribeServiceResponse.class);
+        // 订阅者注册成功，将注册状态标记为{@code true}。
         redoService.subscriberRegistered(serviceName, groupName, clusters);
         return response.getServiceInfo();
     }

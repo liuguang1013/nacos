@@ -62,6 +62,8 @@ public class NamingGrpcRedoService implements ConnectionEventListener {
 
     /**
      * 服务订阅者订阅者
+     * key:  ${groupName}@@${serviceName}@@${clusters}
+     *
      */
     private final ConcurrentMap<String, SubscriberRedoData> subscribes = new ConcurrentHashMap<>();
     
@@ -232,7 +234,9 @@ public class NamingGrpcRedoService implements ConnectionEventListener {
      * @param cluster     cluster
      */
     public void cacheSubscriberForRedo(String serviceName, String groupName, String cluster) {
+        // ${groupName}@@${serviceName}@@${clusters}
         String key = ServiceInfo.getKey(NamingUtils.getGroupedName(serviceName, groupName), cluster);
+        // 构建重连对象
         SubscriberRedoData redoData = SubscriberRedoData.build(serviceName, groupName, cluster);
         synchronized (subscribes) {
             subscribes.put(key, redoData);
@@ -241,7 +245,7 @@ public class NamingGrpcRedoService implements ConnectionEventListener {
     
     /**
      * Subscriber register successfully, mark registered status as {@code true}.
-     *
+     * 订阅者注册成功，将注册状态标记为{@code true}。
      * @param serviceName service name
      * @param groupName   group name
      * @param cluster     cluster

@@ -140,6 +140,7 @@ public class ClientServiceIndexesManager extends SmartSubscriber {
         } else if (event instanceof ClientOperationEvent.ClientDeregisterServiceEvent) {
             removePublisherIndexes(service, clientId);
         } else if (event instanceof ClientOperationEvent.ClientSubscribeServiceEvent) {
+            // 处理客户端订阅服务
             addSubscriberIndexes(service, clientId);
         } else if (event instanceof ClientOperationEvent.ClientUnsubscribeServiceEvent) {
             removeSubscriberIndexes(service, clientId);
@@ -149,7 +150,7 @@ public class ClientServiceIndexesManager extends SmartSubscriber {
     private void addPublisherIndexes(Service service, String clientId) {
         publisherIndexes.computeIfAbsent(service, key -> new ConcurrentHashSet<>());
         publisherIndexes.get(service).add(clientId);
-        // 发布 服务改变事件
+        // 发布 服务改变事件: 添加服务提供者
         NotifyCenter.publishEvent(new ServiceEvent.ServiceChangedEvent(service, true));
     }
     
@@ -164,6 +165,7 @@ public class ClientServiceIndexesManager extends SmartSubscriber {
     private void addSubscriberIndexes(Service service, String clientId) {
         subscriberIndexes.computeIfAbsent(service, key -> new ConcurrentHashSet<>());
         // Fix #5404, Only first time add need notify event.
+        // 只有第一次添加需要通知事件。
         if (subscriberIndexes.get(service).add(clientId)) {
             NotifyCenter.publishEvent(new ServiceEvent.ServiceSubscribedEvent(service, clientId));
         }

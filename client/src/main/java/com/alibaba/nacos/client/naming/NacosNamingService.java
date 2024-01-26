@@ -439,6 +439,8 @@ public class NacosNamingService implements NamingService {
             return;
         }
         String clusterString = StringUtils.join(clusters, ",");
+        // 实例改变通知者：注册监听者，
+        // 当服务的实例信息发生变化，服务端会通知各个客户端，最终调用 listener 监听者
         changeNotifier.registerListener(groupName, serviceName, clusterString, listener);
         clientProxy.subscribe(serviceName, groupName, clusterString);
     }

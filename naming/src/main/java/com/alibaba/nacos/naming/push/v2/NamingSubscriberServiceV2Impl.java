@@ -118,7 +118,17 @@ public class NamingSubscriberServiceV2Impl extends SmartSubscriber implements Na
         result.add(ServiceEvent.ServiceSubscribedEvent.class);
         return result;
     }
-    
+
+    /**
+     * 监听到事件后，向延迟任务引擎添加任务，
+     * PushDelayTaskProcessor 默认的任务处理器，向立刻执行引擎添加 PushExecuteTask 任务，
+     * 最终使用 PushExecutorRpcImpl 向客户端发送 NotifySubscriberRequest 异步推送请求
+     *
+     * ServiceChangedEvent 类型，向所有客户端发
+     * ServiceSubscribedEvent 类型，只向订阅的客户端发送
+     *
+     * @param event {@link Event}
+     */
     @Override
     public void onEvent(Event event) {
         if (event instanceof ServiceEvent.ServiceChangedEvent) {
@@ -132,8 +142,10 @@ public class NamingSubscriberServiceV2Impl extends SmartSubscriber implements Na
             MetricsMonitor.incrementServiceChangeCount(service.getNamespace(), service.getGroup(), service.getName());
         } else if (event instanceof ServiceEvent.ServiceSubscribedEvent) {
             // If service is subscribed by one client, only push this client.
+            // 如果服务由一个客户端订阅，则只推送该客户端。
             ServiceEvent.ServiceSubscribedEvent subscribedEvent = (ServiceEvent.ServiceSubscribedEvent) event;
             Service service = subscribedEvent.getService();
+            // 延迟任务引擎，添加推送延迟任务,默认的推送延迟时间是 0.5s
             delayTaskEngine.addTask(service, new PushDelayTask(service, PushConfig.getInstance().getPushTaskDelay(),
                     subscribedEvent.getClientId()));
         }

@@ -26,8 +26,9 @@ import com.alibaba.nacos.common.remote.client.ServerRequestHandler;
 /**
  * Naming push request handler.
  * 处理 NotifySubscriberRequest 通知订阅请求
- * 当有新的客户端 instants 实例注册到 服务端后，
+ * 1、当有新的客户端 instants 实例注册到 服务端后，
  * 服务端遍历所有客户端，通过异步的方式推送 serviceInfo 服务实例信息
+ * 2、
  * @author xiweng.yy
  */
 public class NamingPushRequestHandler implements ServerRequestHandler {

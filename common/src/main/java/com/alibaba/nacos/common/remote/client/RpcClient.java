@@ -912,7 +912,9 @@ public abstract class RpcClient implements Closeable {
     
     /**
      * handle server request.
-     *
+     * 处理服务端请求：
+     * 1、NotifySubscriberRequest 通知订阅者请求
+     * 2、连接重置请求
      * @param request request.
      * @return response.
      */
