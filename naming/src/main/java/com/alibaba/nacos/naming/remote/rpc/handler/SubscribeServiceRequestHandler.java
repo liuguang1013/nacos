@@ -83,7 +83,9 @@ public class SubscribeServiceRequestHandler extends RequestHandler<SubscribeServ
             clientOperationService.subscribeService(service, subscriber, meta.getConnectionId());
             NotifyCenter.publishEvent(new SubscribeServiceTraceEvent(System.currentTimeMillis(),
                     meta.getClientIp(), service.getNamespace(), service.getGroup(), service.getName()));
-        } else {
+        }
+        // 注销服务
+        else {
             clientOperationService.unsubscribeService(service, subscriber, meta.getConnectionId());
             NotifyCenter.publishEvent(new UnsubscribeServiceTraceEvent(System.currentTimeMillis(),
                     meta.getClientIp(), service.getNamespace(), service.getGroup(), service.getName()));

@@ -143,6 +143,7 @@ public class ClientServiceIndexesManager extends SmartSubscriber {
             // 处理客户端订阅服务
             addSubscriberIndexes(service, clientId);
         } else if (event instanceof ClientOperationEvent.ClientUnsubscribeServiceEvent) {
+            // 处理客户端取消订阅
             removeSubscriberIndexes(service, clientId);
         }
     }
@@ -175,6 +176,7 @@ public class ClientServiceIndexesManager extends SmartSubscriber {
         if (!subscriberIndexes.containsKey(service)) {
             return;
         }
+        // 移除缓存 连接id
         subscriberIndexes.get(service).remove(clientId);
         if (subscriberIndexes.get(service).isEmpty()) {
             subscriberIndexes.remove(service);

@@ -77,6 +77,7 @@ public class InstancesChangeNotifier extends Subscriber<InstancesChangeEvent> {
     
     /**
      * deregister listener.
+     * 取消注册监听者
      *
      * @param groupName   group name
      * @param serviceName serviceName

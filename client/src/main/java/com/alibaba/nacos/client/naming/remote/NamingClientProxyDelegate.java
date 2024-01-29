@@ -192,7 +192,9 @@ public class NamingClientProxyDelegate implements NamingClientProxy {
     public void unsubscribe(String serviceName, String groupName, String clusters) throws NacosException {
         NAMING_LOGGER
                 .debug("[UNSUBSCRIBE-SERVICE] service:{}, group:{}, cluster:{} ", serviceName, groupName, clusters);
+        // 停止更新任务
         serviceInfoUpdateService.stopUpdateIfContain(serviceName, groupName, clusters);
+        // 向服务端发送取消订阅请求
         grpcClientProxy.unsubscribe(serviceName, groupName, clusters);
     }
     

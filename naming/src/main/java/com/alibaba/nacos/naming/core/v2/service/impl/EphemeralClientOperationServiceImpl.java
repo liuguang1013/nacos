@@ -152,8 +152,10 @@ public class EphemeralClientOperationServiceImpl implements ClientOperationServi
         if (!clientIsLegal(client, clientId)) {
             return;
         }
+        // 清除订阅者缓存
         client.removeServiceSubscriber(singleton);
         client.setLastUpdatedTime();
+        // 发布 ClientOperationEvent.ClientUnsubscribeServiceEvent 事件
         NotifyCenter.publishEvent(new ClientOperationEvent.ClientUnsubscribeServiceEvent(singleton, clientId));
     }
     

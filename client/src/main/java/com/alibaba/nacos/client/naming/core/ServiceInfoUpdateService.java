@@ -141,6 +141,7 @@ public class ServiceInfoUpdateService implements Closeable {
     
     /**
      * Stop to schedule update if contain task.
+     * 如果包含任务，停止计划更新。
      *
      * @param serviceName service name
      * @param groupName   group name

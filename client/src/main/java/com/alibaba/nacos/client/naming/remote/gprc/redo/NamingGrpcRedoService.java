@@ -262,6 +262,7 @@ public class NamingGrpcRedoService implements ConnectionEventListener {
     
     /**
      * Subscriber deregister, mark unregistering status as {@code true}.
+     * 订阅者注销，将注销状态标记为{@code true}。
      *
      * @param serviceName service name
      * @param groupName   group name

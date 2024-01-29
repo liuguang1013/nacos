@@ -459,12 +459,21 @@ public class NacosNamingService implements NamingService {
     public void unsubscribe(String serviceName, List<String> clusters, EventListener listener) throws NacosException {
         unsubscribe(serviceName, Constants.DEFAULT_GROUP, clusters, listener);
     }
-    
+
+    /**
+     * 取消订阅
+     * @param serviceName name of service
+     * @param groupName   group of service
+     * @param clusters    list of cluster
+     * @param listener    event listener
+     * @throws NacosException
+     */
     @Override
     public void unsubscribe(String serviceName, String groupName, List<String> clusters, EventListener listener)
             throws NacosException {
         String clustersString = StringUtils.join(clusters, ",");
         changeNotifier.deregisterListener(groupName, serviceName, clustersString, listener);
+        // 取消订阅成功后才请求服务端
         if (!changeNotifier.isSubscribed(groupName, serviceName, clustersString)) {
             clientProxy.unsubscribe(serviceName, groupName, clustersString);
         }

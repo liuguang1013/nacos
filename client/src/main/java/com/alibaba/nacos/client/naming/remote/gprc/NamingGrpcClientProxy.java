@@ -341,6 +341,7 @@ public class NamingGrpcClientProxy extends AbstractNamingClientProxy {
             NAMING_LOGGER
                     .debug("[GRPC-UNSUBSCRIBE] service:{}, group:{}, cluster:{} ", serviceName, groupName, clusters);
         }
+        // 订阅者注销，将注销状态标记为 true
         redoService.subscriberDeregister(serviceName, groupName, clusters);
         doUnsubscribe(serviceName, groupName, clusters);
     }
